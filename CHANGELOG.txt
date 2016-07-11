@@ -1,0 +1,20 @@
+-- Version 1.0.5 --------------------------------------------
+
+Small fixes
+Clarified license: 3-clause BSD
+Compatibility to Py3K and anaconda distribution
+
+-- Version 1.0.3 --------------------------------------------
+
+Fixed some small things
+
+-- Version 1.0.2 --------------------------------------------
+
+Renamed project to temscript.
+Created documentation.
+
+-- Version 1.0.1 --------------------------------------------
+
+Fixed memory leak related to safearray handling
+
+-- Version 1.0.0 --------------------------------------------
