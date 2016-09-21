@@ -202,7 +202,6 @@ static PyObject* getVersion(void)
 
 static PyMethodDef methods[] = {
     {"GetInstrument", (PyCFunction)getInstrument, METH_NOARGS, "Returns Instrument instance."},
-    {"GetVersion", (PyCFunction)getVersion, METH_NOARGS, "Returns temscript version."},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 

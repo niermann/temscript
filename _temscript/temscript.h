@@ -23,9 +23,6 @@
 // Enable debug output
 //#define DEBUGF(...) printf(__VA_ARGS__)
 #define DEBUGF(...) do {} while(0)
-    
-// Set temscript version string
-#define TEMSCRIPT_VERSION "1.0.5"
 
 #define COMPILE_TIME_ASSERT(expr)   extern int __some_arbitrary_symbol[(int)(expr)];
 
