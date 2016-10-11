@@ -1,0 +1,278 @@
+from __future__ import division, print_function
+from temscript.enums import *
+
+# Get imports from library
+try:
+    # Python 3.X
+    from urllib.parse import quote
+except ImportError:
+    # Python 2.X
+    from urlparse import quote
+
+
+def _parse_enum(type, item):
+    """Try to parse 'item' (string or integer) to enum 'type'"""
+    try:
+        return type[item]
+    except:
+        return type(item)
+
+
+class Microscope(object):
+    """
+    A more pythonic interface to the microscope.
+
+    Creating an instance of this class, already queries the COM interface for the instrument
+
+        >>> microscope = Microscope()
+        >>> microscope.get_family()
+        "TITAN"
+    """
+    def __init__(self):
+        from temscript.instrument import GetInstrument
+        tem = GetInstrument()
+        self._tem_instrument = tem
+        self._tem_illumination = tem.Illumination
+        self._tem_projection = tem.Projection
+        self._tem_stage = tem.Stage
+        self._tem_acquisition = tem.Acquisition
+        self._tem_vacuum = tem.Vacuum
+        self._family = tem.Configuration.ProductFamily
+
+    def get_family(self):
+        """Return product family (see :class:`ProductFamily`): "TITAN", "TECNAI", ..."""
+        return ProductFamily(self._family).name
+
+    def get_vacuum(self):
+        """
+        Return status of the vacuum system. The method will return a dict with the following entries:
+
+            * "status": Status of the vacuum system (see :class:`VacuumStatus`): "READY", "OFF", ...
+            * "column_valves_open": Whether the column valves are currently open
+            * "pvp_running": Whether the PVP is running
+            * "gauges(Pa)": dict with Gauge values in Pascal (or the string "UNDERFLOW" or "OVERFLOW")
+        """
+        gauges = {}
+        for g in self._tem_vacuum.Gauges:
+            g.Read()
+            status = GaugeStatus(g.Status)
+            if status == GaugeStatus.UNDERFLOW:
+                gauges[g.Name] = "UNDERFLOW"
+            elif status == GaugeStatus.OVERFLOW:
+                gauges[g.Name] = "OVERFLOW"
+            elif status == GaugeStatus.VALID:
+                gauges[g.Name] = g.Pressure
+        return {
+            "status" : VacuumStatus(self._tem_vacuum.Status).name,
+            "column_valves_open" : self._tem_vacuum.ColumnValvesOpen,
+            "pvp_running" : self._tem_vacuum.PVPRunning,
+            "gauges_Pa" : gauges,
+        }
+
+    def get_detectors(self):
+        """
+        Return dictionary with all available detectors. The method will return a dict, indexed by detector name, with
+        another dict as keys. The embedded dict has the key "type" with value "CAMERA" or "STEM_DETECTOR" identifying
+        the detector type.
+
+        For "CAMERA" detectors the embedded dict will additionally have the following keys:
+
+                * "height": Height of the detector
+                * "width": Width of the detector
+                * "pixel_size(um)": Pixel size in micrometers
+                * "binnings": List of supported binnings
+                * "shutter_modes": List of supported shutter modes (see :class:`AcqShutterMode`)
+                * "pre_exposure_limits(s)": Tuple with Min/Max values of pre exposure times in seconds
+                * "pre_exposure_pause_limits(s)": Tuple with Min/Max values of pre exposure pause times in seconds
+
+        For "STEM_DETECTOR" detectors the embedded dict will additionally have the following keys:
+
+                * "binnings": List of supported binnings
+        """
+        detectors = {}
+        for cam in self._tem_acquisition.Cameras:
+            info = cam.Info
+            param = cam.AcqParams
+            name = quote(info.Name)
+            detectors[name] = {
+                "type": "CAMERA",
+                "height": info.Height,
+                "width": info.Width,
+                "pixel_size(um)": tuple(size / 1e-6 for size in info.PixelSize),
+                "binnings": [int(b) for b in info.Binnings],
+                "shutter_modes": [AcqShutterMode(x).name for x in info.ShutterModes],
+                "pre_exposure_limits(s)": (param.MinPreExposureTime, param.MaxPreExposureTime),
+                "pre_exposure_pause_limits(s)": (param.MinPreExposurePauseTime, param.MaxPreExposurePauseTime)
+            }
+        for stem in self._tem_acquisition.Detectors:
+            info = stem.Info
+            detectors[name] = {
+                "type": "STEM_DETECTOR",
+                "binnings": [int(b) for b in info.Binnings],
+            }
+        return detectors
+
+    def _find_detector(self, name):
+        """Find detector object by name"""
+        for cam in self._tem_acquisition.Cameras:
+            if quote(cam.Info.Name) == name:
+                return cam
+        for stem in self._tem_acquisition.Detectors:
+            if quote(stem.Info.Name) == name:
+                return stem
+        raise KeyError("No detector with name %s" % name)
+
+    def _get_camera_param(self, det):
+        """Create dict with camera parameters"""
+        info = det.Info
+        param = det.AcqParams
+        return {
+            "image_size": AcqImageSize(param.ImageSize).name,
+            "exposure(s)": param.ExposureTime,
+            "binning": param.Binning,
+            "correction": AcqImageCorrection(param.ImageCorrection).name,
+            "exposure_mode": AcqExposureMode(param.ExposureMode).name,
+            "shutter_mode": AcqShutterMode(info.ShutterMode).name,
+            "pre_exposure(s)": param.PreExposureTime,
+            "pre_exposure_pause(s)": param.PreExposurePauseTime
+        }
+
+    def _set_camera_param(self, det, values):
+        """Set camera parameters"""
+        info = det.Info
+        param = det.AcqParams
+        # Silently ignore failures
+        try:
+            param.ImageSize = _parse_enum(AcqImageSize, values["image_size"])
+        except Exception:
+            pass
+        try:
+            param.ExposureTime = values["exposure(s)"]
+        except Exception:
+            pass
+        try:
+            param.Binning = values["binning"]
+        except Exception:
+            pass
+        try:
+            param.ImageCorrection = _parse_enum(AcqImageCorrection, values["correction"])
+        except Exception:
+            pass
+        try:
+            param.ExposureMode = _parse_enum(AcqExposureMode, values["exposure_mode"])
+        except Exception:
+            pass
+        try:
+            info.ShutterMode = _parse_enum(AcqShutterMode, values["shutter_mode"])
+        except Exception:
+            pass
+        try:
+            param.PreExposureTime = values["pre_exposure(s)"]
+        except Exception:
+            pass
+        try:
+            param.PreExposurePauseTime = values["pre_exposure_pause(s)"]
+        except Exception:
+            pass
+
+    def _get_stem_detector_param(self, det):
+        """Create dict with STEM detector parameters"""
+        info = det.Info
+        param = det.AcqParams
+        return {
+            "brightness": info.Brightness,
+            "contrast": info.Contrast,
+            "image_size": AcqImageSize(param.ImageSize).name,
+            "binning": param.Binning,
+            "dwelltime(s)": param.DwellTime
+        }
+
+    def _set_stem_detector_param(self, det, values):
+        """Set STEM detector parameters"""
+        info = det.Info
+        param = det.AcqParams
+        # Silently ignore failures
+        try:
+            info.Brightness = values["brightness"]
+        except Exception:
+            pass
+        try:
+            info.Contrast = values["contrast"]
+        except Exception:
+            pass
+        try:
+            param.ImageSize = _parse_enum(AcqImageSize, values["image_size"])
+        except Exception:
+            pass
+        try:
+            param.Binning = values["binning"]
+        except Exception:
+            pass
+        try:
+            param.DwellTime = values["dwelltime(s)"]
+        except Exception:
+            pass
+
+    def get_detector_param(self, name):
+        """
+        Return parameters for detector `name` as dictionary.
+
+        For "CAMERA" detectors the dict will have the following keys:
+
+            * "image_size": Size of image (see :class:`AcqImageSize`): "FULL", "HALF", ...
+            * "exposure(s)": Exposure time in seconds
+            * "correction": Correction mode (see :class:`AcqImageCorrection`)
+            * "exposure_mode": Exposure mode (see :class:`AcqExposureMode`)
+            * "shutter_mode": Shutter mode (see :class:`AcqShutterMode`)
+            * "pre_exposure(s)": Pre exposure time in seconds
+            * "pre_exposure_pause(s)": Pre exposure pause time in seconds
+
+        For "STEM_DETECTORS" the dict will have the following keys:
+
+            * "brightness": Brightness settings
+            * "contrast": Contrast setting
+            * "image_size": Size of image (see :class:`AcqImageSize`): "FULL", "HALF", ...
+            * "binning": Binning
+            * "dwelltime(s)": Dwell time in seconds
+        """
+        from temscript.instrument import CCDCamera, STEMDetector
+        det = self._find_detector(name)
+        if isinstance(det, CCDCamera):
+            return self._get_camera_param(det)
+        elif isinstance(det, STEMDetector):
+            return self._get_stem_detector_param(det)
+        else:
+            raise TypeError("Unknown detector type.")
+
+    def set_detector_param(self, name, param):
+        """
+        Set parameters for detector `name`. The parameters should be given as a dictionary.
+        Allowed keys are described in the :meth:`get_detector_param` method.
+        If setting a parameter fails, no error is given.
+        """
+        from temscript.instrument import CCDCamera, STEMDetector
+        det = self._find_detector(name)
+        if isinstance(det, CCDCamera):
+            self._set_camera_param(det, param)
+        elif isinstance(det, STEMDetector):
+            self._set_stem_detector_param(det, param)
+        else:
+            raise TypeError("Unknown detector type.")
+
+    def acquire(self, *args):
+        """
+        Acquire images for all detectors given as argument.
+        The images are returned in an dict indexed by detector name.
+        """
+        self._tem_acquisition.RemoveAllAcqDevices()
+        for det in args:
+            try:
+                self._tem_acquisition.AddAcqDeviceByName(det)
+            except Exception:
+                pass
+        # Read as dict of numpy arrays
+        images = self._tem_acquisition.AcquireImages()
+        result = {}
+        for img in images:
+            result[quote(img.Name)] = img.Array
+        return result

@@ -270,6 +270,9 @@ extern "C" void init_temscript(void)
     Py_INCREF(&CCDCamera_Type);
     Py_INCREF(&CCDCameraInfo_Type);
     Py_INCREF(&CCDAcqParams_Type);
+    Py_INCREF(&STEMDetector_Type);
+    Py_INCREF(&STEMDetectorInfo_Type);
+    Py_INCREF(&STEMAcqParams_Type);
     Py_INCREF(&AcqImage_Type);
     Py_INCREF(&Acquisition_Type);
     Py_INCREF(&Gauge_Type);
@@ -286,6 +289,9 @@ extern "C" void init_temscript(void)
     PyModule_AddObject(temscriptModule, "CCDCamera", (PyObject *)&CCDCamera_Type);
     PyModule_AddObject(temscriptModule, "CCDCameraInfo", (PyObject *)&CCDCameraInfo_Type);
     PyModule_AddObject(temscriptModule, "CCDAcqParams", (PyObject *)&CCDAcqParams_Type);
+    PyModule_AddObject(temscriptModule, "STEMDetector", (PyObject *)&STEMDetector_Type);
+    PyModule_AddObject(temscriptModule, "STEMDetectorInfo", (PyObject *)&STEMDetectorInfo_Type);
+    PyModule_AddObject(temscriptModule, "STEMAcqParams", (PyObject *)&STEMAcqParams_Type);
     PyModule_AddObject(temscriptModule, "AcqImage", (PyObject *)&AcqImage_Type);
     PyModule_AddObject(temscriptModule, "Acquisition", (PyObject *)&Acquisition_Type);
     PyModule_AddObject(temscriptModule, "Gauge", (PyObject *)&Gauge_Type);

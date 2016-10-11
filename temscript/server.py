@@ -1,5 +1,6 @@
 #!/usr/bin/python
 from __future__ import division, print_function
+import numpy as np
 import json
 import traceback
 
@@ -15,10 +16,30 @@ except ImportError:
     from urlparse import urlparse, parse_qs, quote
     from cStringIO import StringIO as BytesIO
 
-import temscript.instrument as instrument
-from temscript.enums import *
+from temscript.microscope import Microscope
 
+# Numpy array encoding JSON encoder
+class ArrayJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            import sys, base64
+            if obj.dtype.byteorder == '<':
+                endian = "LITTLE"
+            elif obj.dtype.byteorder == '>':
+                endian = "BIG"
+            else:
+                endian = sys.byteorder.upper()
+            return {
+                'width': obj.shape[1],
+                'height': obj.shape[0],
+                'type': obj.dtype.name,
+                'endianness': endian,
+                'encoding': "BASE64",
+                'data': base64.b64encode(obj).decode("ascii")
+            }
+        return json.JSONEncoder.default(self, obj)
 
+# Setable object as ping-pong test thingie
 _test = "empty string"
 
 
@@ -40,7 +61,7 @@ def _parse_enum(type, item):
         return type(item)
 
 
-class TemscriptHandler(BaseHTTPRequestHandler):
+class MicroscopeHandler(BaseHTTPRequestHandler):
     def send_array_dict(self, data, format):
         if format.startswith("PYTHON_PICKLE_V"):
             import pickle
@@ -49,12 +70,12 @@ class TemscriptHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type', "application/python-pickle")
         elif format == "BASE64":
-            import sys, base64
+
             response = {}
             for name, array in data.items():
-                if array.dtype == '<':
+                if array.dtype.byteorder == '<':
                     endian = "LITTLE"
-                elif array.dtype == '>':
+                elif array.dtype.byteorder == '>':
                     endian = "BIG"
                 else:
                     endian = sys.byteorder.upper()
@@ -64,7 +85,7 @@ class TemscriptHandler(BaseHTTPRequestHandler):
                     'type': array.dtype.name,
                     'endianness': endian,
                     'encoding': "BASE64",
-                    'data': base64.b64encode(array)
+                    'data': base64.b64encode(array).decode("ascii")
                 }
             content = json.dumps(response).encode("utf-8")
             self.send_response(200)
@@ -83,14 +104,16 @@ class TemscriptHandler(BaseHTTPRequestHandler):
     def do_GET_V1(self, endpoint, query):
         # Check for known endpoints
         response = None
-        if endpoint == "vacuum":
-            response = self.server.tem_get_vacuum()
+        if endpoint == "family":
+            response = self.server.microscope.get_family()
+        elif endpoint == "vacuum":
+            response = self.server.microscope.get_vacuum()
         elif endpoint == "detectors":
-            response = self.server.tem_get_detectors()
+            response = self.server.microscope.get_detectors()
         elif endpoint.startswith("detector_param/"):
             try:
                 name = endpoint[15:]
-                response = self.server.tem_get_detector_param(name)
+                response = self.server.microscope.get_detector_param(name)
             except KeyError:
                 self.send_error(404, 'Unknown detector: %s' % self.path)
                 return
@@ -100,10 +123,7 @@ class TemscriptHandler(BaseHTTPRequestHandler):
             except KeyError:
                 self.send_error(404, 'No detectors: %s' % self.path)
                 return
-            return_format = query.get("format", ["BASE64"])[0]
-            result = self.server.tem_acquire(detectors)
-            self.send_array_dict(result, return_format)
-            return
+            response = self.server.microscope.acquire(*detectors)
         elif endpoint == "test":
             response = _test
         else:
@@ -113,12 +133,20 @@ class TemscriptHandler(BaseHTTPRequestHandler):
         if response is None:
             self.send_response(204)
             self.end_headers()
+            return
+
+        accept = [x.strip() for x in self.headers.get("Accept", "").split(",")]
+        if "application/python-pickle" in accept:
+            import pickle
+            encoded_response = pickle.dumps(response, protocol=2)
+            content_type = "application/python-pickle"
         else:
-            encoded_response = json.dumps(response).encode("utf-8")
-            self.send_response(200)
-            self.send_header('Content-type', "application/json")
-            self.end_headers()
-            self.wfile.write(encoded_response)
+            encoded_response = ArrayJSONEncoder().encode(response).encode("utf-8")
+            content_type = "application/json"
+        self.send_response(200)
+        self.send_header('Content-type', content_type)
+        self.end_headers()
+        self.wfile.write(encoded_response)
         return
 
     # Handler for V1 PUTs
@@ -135,7 +163,7 @@ class TemscriptHandler(BaseHTTPRequestHandler):
         if endpoint.startswith("detector_param/"):
             try:
                 name = endpoint[15:]
-                response = self.server.tem_set_detector_param(name, decoded_content)
+                response = self.server.microscope.set_detector_param(name, decoded_content)
             except KeyError:
                 self.send_error(404, 'Unknown detector: %s' % self.path)
                 return
@@ -149,11 +177,20 @@ class TemscriptHandler(BaseHTTPRequestHandler):
         if response is None:
             self.send_response(204)
             self.end_headers()
+            return
+
+        accept = [x.strip() for x in self.headers.get("Accept", "").split(",")]
+        if "application/python-pickle" in accept:
+            import pickle
+            encoded_response = pickle.dumps(response, protocol=2)
+            content_type = "application/python-pickle"
         else:
-            self.send_response(200)
-            self.send_header('Content-type', "application/json")
-            self.end_headers()
-            self.wfile.write(response)
+            encoded_response = ArrayJSONEncoder().encode(response).encode("utf-8")
+            content_type = "application/json"
+        self.send_response(200)
+        self.send_header('Content-type', content_type)
+        self.end_headers()
+        self.wfile.write(encoded_response)
         return
 
     # Handler for the GET requests
@@ -184,192 +221,12 @@ class TemscriptHandler(BaseHTTPRequestHandler):
                            self.path, traceback.format_exc())
             self.send_error(500, "Error handling request: %s" % self.path)
 
-class TemscriptServer(HTTPServer):
+
+class MicroscopeServer(HTTPServer):
     def __init__(self, *args, **kw):
-        #self._setup_tem()
-        super(TemscriptServer, self).__init__(*args, **kw)
+        super(MicroscopeServer, self).__init__(*args, **kw)
+        self.microscope = Microscope()
 
-    def _setup_tem(self):
-        """Get Instrument interface and subinterfaces"""
-        tem = instrument.GetInstrument()
-        self._tem_instrument = tem
-        self._tem_illumination = tem.Illumination
-        self._tem_projection = tem.Projection
-        self._tem_stage = tem.Stage
-        self._tem_acquisition = tem.Acquisition
-        self._tem_vacuum = tem.Vacuum
-
-    def tem_get_vacuum(self):
-        gauges = {}
-        for g in self._tem_vacuum.Gauges:
-            g.Read()
-            status = GaugeStatus(g.Status)
-            if status == GaugeStatus.UNDERFLOW:
-                gauges[g.Name] = "underflow"
-            elif status == GaugeStatus.OVERFLOW:
-                gauges[g.Name] = "overflow"
-            elif status == GaugeStatus.VALID:
-                gauges[g.Name] = g.Pressure
-        return {
-            "status" : VacuumStatus(self._tem_vacuum.Status).name,
-            "column_valves_open" : self._tem_vacuum.ColumnValvesOpen,
-            "pvp_running" : self._tem_vacuum.PVPRunning,
-            "gauges_Pa" : gauges,
-        }
-
-    def tem_get_detectors(self):
-        detectors = {}
-        for cam in self._tem_acquisition.Cameras:
-            info = cam.Info
-            param = cam.AcqParams
-            name = quote(info.Name)
-            detectors[name] = {
-                "type": DetectorType.CAMERA,
-                "height": info.Height,
-                "width": info.Width,
-                "pixel_size_um": info.PixelSize / 1e-6,
-                "binnings": [int(b) for b in info.Binnings],
-                "shutter_modes": [AcqShutterMode(x).name for x in info.ShutterModes],
-                "min_pre_exposure_s": param.MinPreExposureTime,
-                "max_pre_exposure_s": param.MaxPreExposureTime,
-                "min_pre_exposure_pause_s": param.MinPreExposurePauseTime,
-                "max_pre_exposure_pause_s": param.MaxPreExposurePauseTime
-            }
-        for stem in self._tem_acquisition.Detectors:
-            info = stem.Info
-            detectors[name] = {
-                "type": DetectorType.STEM_DETECTOR,
-                "binnings": [int(b) for b in info.Binnings],
-            }
-        return detectors
-
-    def _tem_find_detector(self, name):
-        for cam in self._tem_acquisition.Cameras:
-            if quote(cam.Info.Name) == name:
-                return cam
-        for stem in self._tem_acquisition.Detectors:
-            if quote(stem.Info.Name) == name:
-                return stem
-        raise KeyError("No detector with name %s" % name)
-
-    def _tem_get_camera_param(self, det):
-        info = det.Info
-        param = det.AcqParams
-        return {
-            "image_size": AcqImageSize(param.ImageSize).name,
-            "exposure_s": param.ExposureTime,
-            "binning": param.Binning,
-            "correction": AcqImageCorrection(param.ImageCorrection).name,
-            "mode": AcqExposureMode(param.ExposureMode).name,
-            "shutter": AcqShutterMode(info.ShutterMode).name,
-            "pre_exposure_s": param.PreExposureTime,
-            "pre_exposure_pause_s": param.PreExposurePauseTime
-        }
-
-    def _tem_set_camera_param(self, det, values):
-        info = det.Info
-        param = det.AcqParams
-        # Silently ignore failures
-        try:
-            param.ImageSize = _parse_enum(AcqImageSize, values["image_size"])
-        except Exception:
-            pass
-        try:
-            param.ExposureTime = values["exposure_s"]
-        except Exception:
-            pass
-        try:
-            param.Binning = values["binning"]
-        except Exception:
-            pass
-        try:
-            param.ImageCorrection = _parse_enum(AcqImageCorrection, values["correction"])
-        except Exception:
-            pass
-        try:
-            param.ExposureMode = _parse_enum(AcqExposureMode, values["exposure"])
-        except Exception:
-            pass
-        try:
-            info.ShutterMode = _parse_enum(AcqShutterMode, values["shutter"])
-        except Exception:
-            pass
-        try:
-            param.PreExposureTime = values["pre_exposure_s"]
-        except Exception:
-            pass
-        try:
-            param.PreExposurePauseTime = values["pre_exposure_pause_s"]
-        except Exception:
-            pass
-
-    def _tem_get_stem_detector_param(self, det):
-        info = det.Info
-        param = det.AcqParams
-        return {
-            "brightness": info.Brightness,
-            "contrast": info.Contrast,
-            "image_size": AcqImageSize(param.ImageSize).name,
-            "binning": param.Binning,
-            "dwelltime_s": param.DwellTime
-        }
-
-    def _tem_set_stem_detector_param(self, det, values):
-        info = det.Info
-        param = det.AcqParams
-        # Silently ignore failures
-        try:
-            info.Brightness = values["brightness"]
-        except Exception:
-            pass
-        try:
-            info.Contrast = values["contrast"]
-        except Exception:
-            pass
-        try:
-            param.ImageSize = _parse_enum(AcqImageSize, values["image_size"])
-        except Exception:
-            pass
-        try:
-            param.Binning = values["binning"]
-        except Exception:
-            pass
-        try:
-            param.DwellTime = values["dwelltime_s"]
-        except Exception:
-            pass
-
-    def tem_get_detector_param(self, name):
-        det = self._tem_find_detector(name)
-        if isinstance(det, instrument.CCDCamera):
-            return self._tem_get_camera_param(det)
-        elif isinstance(det, instrument.STEMDetector):
-            return self._tem_get_stem_detector_param(det)
-        else:
-            raise TypeError("Unknown detector type.")
-
-    def tem_set_detector_param(self, name, values):
-        det = self._tem_find_detector(name)
-        if isinstance(det, instrument.CCDCamera):
-            self._tem_set_camera_param(det, values)
-        elif isinstance(det, instrument.STEMDetector):
-            self._tem_set_stem_detector_param(det, values)
-        else:
-            raise TypeError("Unknown detector type.")
-
-    def tem_acquire(self, detectors):
-        self._tem_acquisition.RemoveAllAcqDevices()
-        for det in detectors:
-            try:
-                self._tem_acquisition.AddAcqDeviceByName(det)
-            except Exception:
-                pass
-        # Read as dict of numpy arrays
-        images = self._tem_acquisition.AcquireImages()
-        result = {}
-        for img in images:
-            result[quote(img.Name)] = img.Array
-        return result
 
 if __name__ == '__main__':
     SERVER_PORT = 8080
@@ -378,7 +235,7 @@ if __name__ == '__main__':
     try:
         # Create a web server and define the handler to manage the
         # incoming request
-        server = TemscriptServer((SERVER_HOST, SERVER_PORT), TemscriptHandler)
+        server = MicroscopeServer((SERVER_HOST, SERVER_PORT), MicroscopeHandler)
         print("Started httpserver on host '%s' port %d." % (SERVER_HOST, SERVER_PORT))
         print("Press Ctrl+C to stop server.")
 
