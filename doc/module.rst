@@ -565,7 +565,7 @@ Acquisition related classes
 
     .. attribute:: PixelSize
     
-        (read) (X, Y)-Tuple with physical pixel size (TODO: units?)
+        (read) (X, Y)-Tuple with physical pixel size (Manual says nothing about units, seems to be meters)
 
     .. attribute:: Binnings
     

@@ -25,7 +25,7 @@ static PyObject* Acquisition_get_Cameras(Acquisition *self, void *)
         return NULL;
     }
 
-    PyObject* tuple = PyTuple_New(count);
+    PyObject* tuple = PyList_New(count);
     for (long n = 0; n < count; n++) {
         TEMScripting::CCDCamera* camera;
 
@@ -52,7 +52,7 @@ static PyObject* Acquisition_get_Cameras(Acquisition *self, void *)
 
         //PyObject* name = CCDCamera_get_Name(obj);
 
-        PyTuple_SetItem(tuple, n, obj);
+        PyList_SetItem(tuple, n, obj);
     }
 
     collection->Release();
@@ -97,7 +97,7 @@ static PyObject* Acquisition_get_Detectors(Acquisition *self, void *)
         return 0;
     }
 
-    PyObject* tuple = PyTuple_New(count);
+    PyObject* tuple = PyList_New(count);
     for (long n = 0; n < count; n++) {
         TEMScripting::STEMDetector* detector;
 
@@ -124,7 +124,7 @@ static PyObject* Acquisition_get_Detectors(Acquisition *self, void *)
             return NULL;
         }
 
-        PyTuple_SetItem(tuple, n, obj);
+        PyList_SetItem(tuple, n, obj);
     }
 
     Py_CLEAR(acqParams);
@@ -280,7 +280,7 @@ static PyObject* Acquisition_AcquireImages(Acquisition *self)
         return NULL;
     }
 
-    PyObject* tuple = PyTuple_New(count);
+    PyObject* tuple = PyList_New(count);
     for (long n = 0; n < count; n++) {
         TEMScripting::AcqImage* image;
 
@@ -304,7 +304,7 @@ static PyObject* Acquisition_AcquireImages(Acquisition *self)
             Py_XDECREF(tuple);
             return NULL;
         }
-        PyTuple_SetItem(tuple, n, obj);
+        PyList_SetItem(tuple, n, obj);
     }
 
     collection->Release();
