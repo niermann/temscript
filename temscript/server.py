@@ -51,7 +51,7 @@ class ArrayJSONEncoder(json.JSONEncoder):
 _test = "empty string"
 
 
-def _gzipencode(self, content):
+def _gzipencode(content):
     """GZIP encode bytes object"""
     import gzip
     out = BytesIO()
@@ -70,7 +70,7 @@ def _parse_enum(type, item):
 
 
 class MicroscopeHandler(BaseHTTPRequestHandler):
-    def send_response(self, response):
+    def build_response(self, response):
         if response is None:
             self.send_response(204)
             self.end_headers()
@@ -134,7 +134,7 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
         else:
             self.send_error(404, 'Unknown endpoint: %s' % self.path)
             return
-        self.send_response(response)
+        self.build_response(response)
 
     # Handler for V1 PUTs
     def do_PUT_V1(self, endpoint, query):
@@ -151,7 +151,7 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             method = decoded_content.get("method", "GO")
             pos = dict((k, decoded_content[k]) for k in decoded_content.keys() if k in Microscope.STAGE_AXES)
             self.server.microscope.set_stage_position(pos, method=method)
-        if endpoint.startswith("detector_param/"):
+        elif endpoint.startswith("detector_param/"):
             try:
                 name = endpoint[15:]
                 response = self.server.microscope.set_detector_param(name, decoded_content)
@@ -164,7 +164,7 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
         else:
             self.send_error(404, 'Unknown endpoint: %s' % self.path)
             return
-        self.send_response(response)
+        self.build_response(response)
 
     # Handler for the GET requests
     def do_GET(self):

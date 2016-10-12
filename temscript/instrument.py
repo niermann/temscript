@@ -5,7 +5,7 @@ version = "1.0.5"
 
 # Import COM bridging code
 try:
-    from _temscript2 import *
+    from _temscript import *
 
 except ImportError:
     def GetInstrument():

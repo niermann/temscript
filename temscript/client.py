@@ -102,7 +102,7 @@ class MicroscopeClient(object):
             pos["method"] = method
         elif "method" in pos:
             del pos["method"]
-        content = json.dumps(param).encode("utf-8")
+        content = json.dumps(pos).encode("utf-8")
         self._request("PUT", "/v1/stage_position", body=content, accepted_response=[200, 204],
                       headers={"Content-Type": "application/json"})
 
@@ -156,24 +156,43 @@ class MicroscopeClient(object):
 
 if __name__ == '__main__':
     SERVER_PORT = 8080
-    SERVER_HOST = '192.168.99.10' #'localhost'
+    SERVER_HOST = 'localhost'
+    #SERVER_HOST = '192.168.99.10'
+    TRANSPORT = "JSON" # "PICKLE"
+    client = MicroscopeClient((SERVER_HOST, SERVER_PORT), transport=TRANSPORT)
 
-    client = MicroscopeClient((SERVER_HOST, SERVER_PORT))
-    print(client.get_test())
-    client.set_test({"EINS": 1, "ZWEI": 2.0, "DREI": "xxx", "VIER": [0,1,2,3]})
-    print(client.get_family())
-    print(client.get_test())
-    print(client.get_vacuum())
-    print(client.get_detectors())
-    param = client.get_detector_param("CCD")
-    print(param)
-    exposure = 1.0 if param["exposure(s)"] != 1.0 else 1.0 / param["exposure(s)"]
-    client.set_detector_param("CCD", {"exposure(s)": exposure})
-    print(client.get_detector_param("CCD"))
-    images = client.acquire("CCD")
-    print(images["CCD"].shape, images["CCD"].dtype)
+    if 0:
+        print("TEST-1", client.get_test())
+        client.set_test({"EINS": 1, "ZWEI": 2.0, "DREI": "xxx", "VIER": [0, 1, 2, 3]})
+        print("TEST-2", client.get_test())
 
-    import matplotlib.pyplot as plt
+    if 1:
+        print("FAMILY", client.get_family())
+        print("VACUUM", client.get_vacuum())
+        print("STAGE_HOLDER", client.get_stage_holder())
+        print("STAGE_STATUS", client.get_stage_status())
+        print("STAGE_LIMITS", client.get_stage_limits())
+        print("STAGE_POSITION", client.get_stage_position())
+        print("DETECTORS", client.get_detectors())
 
-    plt.imshow(images["CCD"], cmap="gray")
-    plt.show()
+    if 1:
+        param = client.get_detector_param("CCD")
+        print("DETECTOR_PARAM(CCD)-1", param)
+        exposure = 1.0 if param["exposure(s)"] != 1.0 else 1.0 / param["exposure(s)"]
+        client.set_detector_param("CCD", {"exposure(s)": exposure})
+        print("DETECTOR_PARAM(CCD)-2", client.get_detector_param("CCD"))
+
+        images = client.acquire("CCD")
+        print("ACQUIRE(CCD)-ARRAY", images["CCD"].shape, images["CCD"].dtype)
+
+        import matplotlib.pyplot as plt
+
+        plt.imshow(images["CCD"], cmap="gray")
+        plt.show()
+
+    if 0:
+        pos = client.get_stage_position()
+        new_x = 10e-6 if pos['x'] < 0 else -10e-6
+        client.set_stage_position({'x': new_x})
+        for n in range(20):
+            print(client.get_stage_status(), client.get_stage_position())

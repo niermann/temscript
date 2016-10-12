@@ -77,7 +77,7 @@ class Microscope(object):
         """Return holder currently in stage (see :class:`StageHolderType`)"""
         return StageHolderType(self._tem_stage.Holder).name
 
-    def get_stage_holder(self):
+    def get_stage_status(self):
         """Return status of stage (see :class:`StageStatus`)"""
         return StageStatus(self._tem_stage.Status).name
 
@@ -115,9 +115,9 @@ class Microscope(object):
             * "MOVE": Avoids pole piece touches, by first zeroing the angle, moving the stage than, and setting the angles again.
         """
         if method == "GO":
-            self._tem_state.GoTo(**pos)
+            self._tem_stage.GoTo(**pos)
         elif method == "MOVE":
-            self._tem_state.MoveTo(**pos)
+            self._tem_stage.MoveTo(**pos)
         else:
             raise ValueError("Unknown movement methods.")
 
