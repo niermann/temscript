@@ -28,6 +28,10 @@ class Microscope(object):
         >>> microscope.get_family()
         "TITAN"
     """
+
+    # Allowed stage axes
+    STAGE_AXES = frozenset(('x', 'y', 'z', 'a', 'b'))
+
     def __init__(self):
         from temscript.instrument import GetInstrument
         tem = GetInstrument()
@@ -68,6 +72,54 @@ class Microscope(object):
             "pvp_running" : self._tem_vacuum.PVPRunning,
             "gauges_Pa" : gauges,
         }
+
+    def get_stage_holder(self):
+        """Return holder currently in stage (see :class:`StageHolderType`)"""
+        return StageHolderType(self._tem_stage.Holder).name
+
+    def get_stage_holder(self):
+        """Return status of stage (see :class:`StageStatus`)"""
+        return StageStatus(self._tem_stage.Status).name
+
+    def get_stage_limits(self):
+        """
+        Returns dictionary with min/max tuples for all holder axes.
+        The tuples are the values, the axis names are the keys.
+        For axes "x", "y", "z" the unit is meters
+        For axes "a", "b" the unit is radians
+        """
+        result = {}
+        for axis in ('x', 'y', 'z', 'a', 'b'):
+            mn, mx, unit = self._tem_stage.AxisData(axis)
+            result[axis] = (mn, mx)
+        return result
+
+    def get_stage_position(self):
+        """
+        Returns dictionary with stage position (axes names are used as keys).
+        For axes "x", "y", "z" the unit is meters
+        For axes "a", "b" the unit is radians
+        """
+        return self._tem_stage.Position
+
+    def set_stage_position(self, pos, method="GO"):
+        """
+        Set new stage position. The new position is passed as dict.
+        Only the axes are driven which are mentioned in the `pos` dict.
+        For axes "x", "y", "z" the unit is meters.
+        For axes "a", "b" the unit is radians.
+
+        There are two methods of movement:
+
+            * "GO": Moves directly to new stage position
+            * "MOVE": Avoids pole piece touches, by first zeroing the angle, moving the stage than, and setting the angles again.
+        """
+        if method == "GO":
+            self._tem_state.GoTo(**pos)
+        elif method == "MOVE":
+            self._tem_state.MoveTo(**pos)
+        else:
+            raise ValueError("Unknown movement methods.")
 
     def get_detectors(self):
         """

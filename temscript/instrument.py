@@ -12,10 +12,7 @@ except ImportError:
         """Returns Instrument instance."""
         raise RuntimeError("temscript microscope API is not accessible")
 
-    class Instrument:
-        pass
-
-    class Acquisition:
+    class Stage:
         pass
 
     class CCDCamera:
@@ -39,3 +36,32 @@ except ImportError:
     class AcqImage:
         pass
 
+    class Acquisition:
+        pass
+
+    class Gauge:
+        pass
+
+    class Vacuum:
+        pass
+
+    class Configuration:
+        pass
+
+    class Projection:
+        pass
+
+    class Illumination:
+        pass
+
+    class Gun:
+        pass
+
+    class BlankerShutter:
+        pass
+
+    class InstrumentModeControl:
+        pass
+
+    class Instrument:
+        pass

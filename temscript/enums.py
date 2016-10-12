@@ -51,10 +51,10 @@ class StageStatus(IntEnum):
 
 class StageHolderType(IntEnum):
     NONE = const.hoNone
-    SINGLE_TILE = const.hoSingleTilt
-    DOUBLE_TILE = const.hoDoubleTilt
+    SINGLE_TILT = const.hoSingleTilt
+    DOUBLE_TILT = const.hoDoubleTilt
     INVALID = const.hoInvalid
-    POLARY = const.hoPolara
+    POLARA = const.hoPolara
     DUAL_AXIS = const.hoDualAxis
 
 

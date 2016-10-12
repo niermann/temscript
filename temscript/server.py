@@ -20,19 +20,27 @@ from temscript.microscope import Microscope
 
 # Numpy array encoding JSON encoder
 class ArrayJSONEncoder(json.JSONEncoder):
+    allowed_dtypes = {"INT8", "INT16", "INT32", "INT64", "UINT8", "UINT16", "UINT32", "UINT64", "FLOAT32", "FLOAT64"}
+
     def default(self, obj):
         if isinstance(obj, np.ndarray):
             import sys, base64
+
+            dtype_name = obj.dtype.name.upper()
+            if dtype_name not in self.allowed_dtypes:
+                return json.JSONEncoder.default(self, obj)
+
             if obj.dtype.byteorder == '<':
                 endian = "LITTLE"
             elif obj.dtype.byteorder == '>':
                 endian = "BIG"
             else:
                 endian = sys.byteorder.upper()
+
             return {
                 'width': obj.shape[1],
                 'height': obj.shape[0],
-                'type': obj.dtype.name,
+                'type': dtype_name,
                 'endianness': endian,
                 'encoding': "BASE64",
                 'data': base64.b64encode(obj).decode("ascii")
@@ -62,43 +70,32 @@ def _parse_enum(type, item):
 
 
 class MicroscopeHandler(BaseHTTPRequestHandler):
-    def send_array_dict(self, data, format):
-        if format.startswith("PYTHON_PICKLE_V"):
-            import pickle
-            protocol = int(format[15:])
-            content = pickle.dumps(data, protocol=protocol)
-            self.send_response(200)
-            self.send_header('Content-type', "application/python-pickle")
-        elif format == "BASE64":
-
-            response = {}
-            for name, array in data.items():
-                if array.dtype.byteorder == '<':
-                    endian = "LITTLE"
-                elif array.dtype.byteorder == '>':
-                    endian = "BIG"
-                else:
-                    endian = sys.byteorder.upper()
-                response[name] = {
-                    'width': array.shape[1],
-                    'height': array.shape[0],
-                    'type': array.dtype.name,
-                    'endianness': endian,
-                    'encoding': "BASE64",
-                    'data': base64.b64encode(array).decode("ascii")
-                }
-            content = json.dumps(response).encode("utf-8")
-            self.send_response(200)
-            self.send_header('Content-type', "application/json")
-        else:
-            self.send_error(404, 'Unknown format: %s' % self.path)
+    def send_response(self, response):
+        if response is None:
+            self.send_response(204)
+            self.end_headers()
             return
-        # Compress?
-        if len(content) > 256 and 'accept-encoding' in self.headers and 'gzip' in self.headers['accept-encoding']:
-            content = _gzipencode(content)
-            self.send_header('content-encoding', 'gzip')
+        self.send_response(200)
+
+        # Transport encoding
+        accept_type = [x.split(';', 1)[0].strip() for x in self.headers.get("Accept", "").split(",")]
+        if "application/python-pickle" in accept_type:
+            import pickle
+            encoded_response = pickle.dumps(response, protocol=2)
+            content_type = "application/python-pickle"
+        else:
+            encoded_response = ArrayJSONEncoder().encode(response).encode("utf-8")
+            content_type = "application/json"
+
+        # Compression?
+        accept_encoding = [x.split(';', 1)[0].strip() for x in self.headers.get("Accept-Encoding", "").split(",")]
+        if len(encoded_response) > 256 and 'gzip' in accept_encoding:
+            encoded_response = _gzipencode(encoded_response)
+            self.send_header('Content-Encoding', 'gzip')
+        self.send_header('Content-Type', content_type)
         self.end_headers()
-        self.wfile.write(content)
+        self.wfile.write(encoded_response)
+        return
 
     # Handler for V1 GETs
     def do_GET_V1(self, endpoint, query):
@@ -108,6 +105,14 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             response = self.server.microscope.get_family()
         elif endpoint == "vacuum":
             response = self.server.microscope.get_vacuum()
+        elif endpoint == "stage_holder":
+            response = self.server.microscope.get_stage_holder()
+        elif endpoint == "stage_status":
+            response = self.server.microscope.get_stage_status()
+        elif endpoint == "stage_position":
+            response = self.server.microscope.get_stage_position()
+        elif endpoint == "stage_limits":
+            response = self.server.microscope.get_stage_limits()
         elif endpoint == "detectors":
             response = self.server.microscope.get_detectors()
         elif endpoint.startswith("detector_param/"):
@@ -129,25 +134,7 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
         else:
             self.send_error(404, 'Unknown endpoint: %s' % self.path)
             return
-
-        if response is None:
-            self.send_response(204)
-            self.end_headers()
-            return
-
-        accept = [x.strip() for x in self.headers.get("Accept", "").split(",")]
-        if "application/python-pickle" in accept:
-            import pickle
-            encoded_response = pickle.dumps(response, protocol=2)
-            content_type = "application/python-pickle"
-        else:
-            encoded_response = ArrayJSONEncoder().encode(response).encode("utf-8")
-            content_type = "application/json"
-        self.send_response(200)
-        self.send_header('Content-type', content_type)
-        self.end_headers()
-        self.wfile.write(encoded_response)
-        return
+        self.send_response(response)
 
     # Handler for V1 PUTs
     def do_PUT_V1(self, endpoint, query):
@@ -160,6 +147,10 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
 
         # Check for known endpoints
         response = None
+        if endpoint == "stage_position":
+            method = decoded_content.get("method", "GO")
+            pos = dict((k, decoded_content[k]) for k in decoded_content.keys() if k in Microscope.STAGE_AXES)
+            self.server.microscope.set_stage_position(pos, method=method)
         if endpoint.startswith("detector_param/"):
             try:
                 name = endpoint[15:]
@@ -173,25 +164,7 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
         else:
             self.send_error(404, 'Unknown endpoint: %s' % self.path)
             return
-
-        if response is None:
-            self.send_response(204)
-            self.end_headers()
-            return
-
-        accept = [x.strip() for x in self.headers.get("Accept", "").split(",")]
-        if "application/python-pickle" in accept:
-            import pickle
-            encoded_response = pickle.dumps(response, protocol=2)
-            content_type = "application/python-pickle"
-        else:
-            encoded_response = ArrayJSONEncoder().encode(response).encode("utf-8")
-            content_type = "application/json"
-        self.send_response(200)
-        self.send_header('Content-type', content_type)
-        self.end_headers()
-        self.wfile.write(encoded_response)
-        return
+        self.send_response(response)
 
     # Handler for the GET requests
     def do_GET(self):

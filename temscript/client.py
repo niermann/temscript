@@ -30,6 +30,7 @@ class MicroscopeClient(object):
         # Make connection
         if self._conn is None:
             self._conn = HTTPConnection(self.host, self.port)
+
         # Create request
         if len(query) > 0:
             url = "%s?%s" % (endpoint, urlencode(query))
@@ -38,7 +39,10 @@ class MicroscopeClient(object):
         headers = dict(headers)
         if "Accept" not in headers:
             headers["Accept"] = ",".join(self.accepted_content)
+        if "Accept-Encoding" not in headers:
+            headers["Accept-Encoding"] = "gzip"
         self._conn.request(method, url, body, headers)
+
         # Get response
         response = self._conn.getresponse()
         body = response.read()
@@ -46,12 +50,14 @@ class MicroscopeClient(object):
             raise ValueError("Failed remote call: %d, %s" % (response.status, response.reason))
         if response.status == 204:
             return response, body
-        content_type = response.getheader("Content-type")
+
+        # Decode response
+        content_type = response.getheader("Content-Type")
         if content_type not in self.accepted_content:
             raise ValueError("Unexpected response type: %s", content_type)
-        #if response.getheader("Content-Encoding") == "gzip":
-        # import zlib
-        #    body = zlib.decompress(body, 16 + zlib.MAX_WBITS)
+        if response.getheader("Content-Encoding") == "gzip":
+            import zlib
+            body = zlib.decompress(body, 16 + zlib.MAX_WBITS)
         if content_type == "application/json":
             body = json.loads(body.decode("utf-8"))
         elif content_type == "application/python-pickle":
@@ -74,6 +80,32 @@ class MicroscopeClient(object):
         response, body = self._request("GET", "/v1/family")
         return body
 
+    def get_stage_holder(self):
+        response, body = self._request("GET", "/v1/stage_holder")
+        return body
+
+    def get_stage_status(self):
+        response, body = self._request("GET", "/v1/stage_status")
+        return body
+
+    def get_stage_limits(self):
+        response, body = self._request("GET", "/v1/stage_limits")
+        return body
+
+    def get_stage_position(self):
+        response, body = self._request("GET", "/v1/stage_position")
+        return body
+
+    def set_stage_position(self, pos, method=None):
+        pos = dict(pos)
+        if method is not None:
+            pos["method"] = method
+        elif "method" in pos:
+            del pos["method"]
+        content = json.dumps(param).encode("utf-8")
+        self._request("PUT", "/v1/stage_position", body=content, accepted_response=[200, 204],
+                      headers={"Content-Type": "application/json"})
+
     def get_vacuum(self):
         response, body = self._request("GET", "/v1/vacuum")
         return body
@@ -91,28 +123,25 @@ class MicroscopeClient(object):
         self._request("PUT", "/v1/detector_param/" + name, body=content, accepted_response=[200, 204],
                       headers={"Content-Type": "application/json"})
 
+    allowed_types = {"INT8", "INT16", "INT32", "INT64", "UINT8", "UINT16", "UINT32", "UINT64", "FLOAT32", "FLOAT64"}
+    allowed_endianness = {"LITTLE", "BIG"}
+
     def acquire(self, *detectors):
         query = [("detectors", det) for det in detectors]
         response, body = self._request("GET", "/v1/acquire", query=query)
-        #
-        #if response.getheader("Content-Encoding") == "gzip":
-        #    import zlib
-        #    body = zlib.decompress(body, 16 + zlib.MAX_WBITS)
-        if response.getheader("Content-type") == "application/json":
+        if response.getheader("Content-Type") == "application/json":
             # Unpack array
             import sys
             import base64
             endianness = sys.byteorder.upper()
-            allowed_types = {"int8", "int16", "int32", "int64", "uint8", "uint16", "uint32", "uint64", "float32", "float64"}
-            allowed_endianness = {"LITTLE", "BIG"}
             result = {}
             for k, v in body.items():
                 shape = int(v["height"]), int(v["width"])
-                if v["type"] not in allowed_types:
+                if v["type"] not in self.allowed_types:
                     raise ValueError("Unsupported array type in JSON stream: %s" % str(v["type"]))
-                if v["endianness"] not in allowed_endianness:
+                if v["endianness"] not in self.allowed_endianness:
                     raise ValueError("Unsupported endianness in JSON stream: %s" % str(v["endianness"]))
-                dtype = np.dtype(v["type"])
+                dtype = np.dtype(v["type"].lower())
                 if v["encoding"] == "BASE64":
                     data = base64.b64decode(v["data"])
                 else:
