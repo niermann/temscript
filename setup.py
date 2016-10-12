@@ -16,11 +16,11 @@ _temscript_module = Extension('_temscript',
                               include_dirs=py_includes)
 
 setup(name = 'temscript',
-      version = '1.0.5',
+      version = '1.0.6',
       description = 'TEM Scripting adapter for FEI microscopes',
       author = 'Tore Niermann',
       author_email = 'niermann (at) physik.tu-berlin.de',
-      py_modules = ['temscript'],
+      packages=['temscript'],
       requires = ['numpy', 'enum34'],
       ext_modules = [_temscript_module],
       classifiers = ['Development Status :: 4 - Beta',

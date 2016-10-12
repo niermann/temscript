@@ -191,15 +191,6 @@ static PyObject* getInstrument(void)
     return obj;
 }
 
-static PyObject* getVersion(void)
-{
-#if PY_MAJOR_VERSION >= 3
-    return PyUnicode_FromString(TEMSCRIPT_VERSION);
-#else
-    return PyString_FromString(TEMSCRIPT_VERSION);   
-#endif
-}
-
 static PyMethodDef methods[] = {
     {"GetInstrument", (PyCFunction)getInstrument, METH_NOARGS, "Returns Instrument instance."},
     {NULL, NULL, 0, NULL}        /* Sentinel */

@@ -12,10 +12,10 @@
 #include <Python.h>
 
 // Use this statement to use the type library from your own stdscript.dll
-//#import "stdscript.dll" named_guids raw_interfaces_only raw_method_prefix("raw_")
+#import "stdscript.dll" named_guids raw_interfaces_only raw_method_prefix("raw_")
 
 // Use header created from typelib
-#include "stdscript.tlh"
+//#include "stdscript.tlh"
 
 // Use this statement, if the namespace of your TEM scripting interface is still called "Tecnai"
 //namespace TEMScripting = Tecnai;

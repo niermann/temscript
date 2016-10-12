@@ -22,11 +22,14 @@ Requirements:
     Sphinx (only for building documentation, tested with 1.1.3)
     A compiler (tested with MS Visual Studio 8/10)
 
-Only when you want to use your own scripting adapters type library:
+Alternatively, use the Anaconda python distribution (you still need
+the compiler though)
+    Tested with Python 3.4.3|Anaconda 2.3.0 (32-bit)
+    Tested with Python 2.7.11|Anaconda 2.4.1 (32-bit)
+
+Install your own microscope's scripting adapters type library:
     1) Copy your version of the scripting adapter's stdscript.dll into 
     to the _temscript subdirectory
-    2) Uncomment the #import "stdscript.dll" line in temscript.h
-    3) Comment the #include "stdscript.tlh" line in temscript.h
 
 Simply execute from the command line (assuming you have your python 
 interpreter in the path):
