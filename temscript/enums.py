@@ -1,4 +1,10 @@
-from enum import IntEnum
+# Get imports from library
+try:
+    # Python 3.X
+    from enum import IntEnum
+except ImportError:
+    # Python 2.X
+    from enum34 import IntEnum
 
 import temscript.constants as const
 

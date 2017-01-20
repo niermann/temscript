@@ -3,11 +3,13 @@ __all__ = ("version", "GetInstrument")
 # Set temscript version string
 version = "1.0.5"
 
-# Import COM bridging code
 try:
+    # Where the _temscript module is available and the COM interface works (i.e. the microscope's computer)
+    # use the real thing
     from _temscript import *
 
 except ImportError:
+    # Have atleast some stubs to develop software also on off-line computers...
     def GetInstrument():
         """Returns Instrument instance."""
         raise RuntimeError("temscript microscope API is not accessible")

@@ -115,6 +115,8 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             response = self.server.microscope.get_stage_limits()
         elif endpoint == "detectors":
             response = self.server.microscope.get_detectors()
+        elif endpoint == "image_shift":
+            response = self.server.microscope.get_image_shift()
         elif endpoint.startswith("detector_param/"):
             try:
                 name = endpoint[15:]
@@ -151,6 +153,8 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             method = decoded_content.get("method", "GO")
             pos = dict((k, decoded_content[k]) for k in decoded_content.keys() if k in Microscope.STAGE_AXES)
             self.server.microscope.set_stage_position(pos, method=method)
+        elif endpoint == "image_shift":
+            self.server.microscope.set_image_shift(decoded_content)
         elif endpoint.startswith("detector_param/"):
             try:
                 name = endpoint[15:]

@@ -7,7 +7,7 @@ try:
     from urllib.parse import quote
 except ImportError:
     # Python 2.X
-    from urlparse import quote
+    from urllib import quote
 
 
 def _parse_enum(type, item):
@@ -328,3 +328,18 @@ class Microscope(object):
         for img in images:
             result[quote(img.Name)] = img.Array
         return result
+
+    def get_image_shift(self):
+        """
+        Return image shift as (x,y) tuple.
+
+        The units this is returned in are meters. The accuracy of ths value depends on the accuracy of the
+        calibration within the microscope and thus is better not to be trusted blindly.
+        """
+        return self._tem_projection.ImageShift
+
+    def set_image_shift(self, pos):
+        """
+        Set image shift to position `pos`, which should be an (x, y) tuple, as returned for instance by :meth:`get_image_shift`.
+        """
+        self._tem_projection.ImageShift = pos
