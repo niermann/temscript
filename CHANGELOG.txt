@@ -1,3 +1,7 @@
+-- Version 1.0.7 --------------------------------------------
+
+Started new interface (with client/server support).
+
 -- Version 1.0.5 --------------------------------------------
 
 Small fixes

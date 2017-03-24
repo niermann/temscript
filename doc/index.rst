@@ -4,9 +4,10 @@ Welcome to temscript's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
    
-   module
+    microscope
+    instrument
    
 Introduction:
 =============
@@ -25,7 +26,9 @@ Enumerations
 Many of the object's attributes actually return values from enumeration. The Python
 wrappers of these attributes will return an integer value. There are constants in the
 :mod:`temscript` module representing the enumeration values (e.g. ``pmImaging`` and ``pmDiffraction``
-for the ``Mode`` attribute of the :class:`Projection` object)
+for the ``Mode`` attribute of the :class:`Projection` object). Since version 1.0.5 there are also
+python enums for these, which can be found in the :mod:`temscript.enums` module and are imported
+into the :mod:`temscript` namespace.
 
 Vectors
 ^^^^^^^
@@ -39,6 +42,15 @@ Collections
 
 Collections will be returned as list or tuple of objects. In future versions this might change,
 and dictionaries will be returned.
+
+Globals
+^^^^^^^
+
+.. data:: version
+
+    A string describing the version of temscript in the format 'X.Y.Z'.
+    Current value is '|release|'. This is not the version of the TEMScripting interface
+    (which can't be queried such easily).
 
 Indices and tables
 ==================

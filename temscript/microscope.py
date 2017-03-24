@@ -1,5 +1,6 @@
 from __future__ import division, print_function
 from temscript.enums import *
+import math
 
 # Get imports from library
 try:
@@ -335,6 +336,8 @@ class Microscope(object):
 
         The units this is returned in are meters. The accuracy of ths value depends on the accuracy of the
         calibration within the microscope and thus is better not to be trusted blindly.
+        
+        On FEI microscopes this corresponds to the state of "User Image Shift" (in different units though).
         """
         return self._tem_projection.ImageShift
 
@@ -343,3 +346,57 @@ class Microscope(object):
         Set image shift to position `pos`, which should be an (x, y) tuple, as returned for instance by :meth:`get_image_shift`.
         """
         self._tem_projection.ImageShift = pos
+
+    def get_beam_shift(self):
+        """
+        Return beam shift as (x,y) tuple.
+
+        The units this is returned in are meters. The accuracy of ths value depends on the accuracy of the
+        calibration within the microscope and thus is better not to be trusted blindly.
+       
+        On FEI microscopes this corresponds to the state of "User Beam Shift" (in different units though).
+        """
+        return self._tem_illumination.Shift
+
+    def set_beam_shift(self, pos):
+        """
+        Set beam shift to position `pos`, which should be an (x, y) tuple, as returned for instance by :meth:`get_image_shift`.
+        """
+        self._tem_illumination.Shift = pos
+
+    def get_beam_tilt(self):
+        """
+        Return beam tilt as (x,y) tuple.
+
+        The units this is returned in are radians. The accuracy of ths value depends on the accuracy of the
+        calibration within the microscope and thus is better not to be trusted blindly.
+
+        On FEI microscopes this corresponds to the state of "DF Tilt" (in different units though).
+        """
+        tilt = self._tem_illumination.Tilt
+        mode = self._tem_illumination.DFMode
+        if mode == DarkFieldMode.CONICAL:
+            return tilt[0] * math.cos(tilt[1]), tilt[0] * math.sin(tilt[1])
+        elif mode == DarkFieldMode.CARTESIAN:
+            return tilt
+        else:
+            return 0.0, 0.0     # Microscope might return nonsense if DFMode is OFF
+            
+    def set_beam_tilt(self, tilt):
+        """
+        Set beam tilt to position `tilt`, which should be an (x, y) tuple, as returned for instance by :meth:`get_image_shift`.
+        
+        On FEI microscopes:
+        * this will turn on dark field mode, unless (0, 0) is set, which will also turn off the dark field mode.
+        """
+        mode = self._tem_illumination.DFMode
+        if tilt[0] == 0.0 and tilt[1] == 0.0:
+            self._tem_illumination.Tilt = 0.0, 0.0
+            self._tem_illumination.DFMode = DarkFieldMode.OFF
+        elif mode == DarkFieldMode.CONICAL:
+            self._tem_illumination.Tilt = math.sqrt(tilt[0]**2 + tilt[1]**2), math.atan2(tilt[1], tilt[0])
+        elif mode == DarkFieldMode.OFF:
+            self._tem_illumination.DFMode = DarkFieldMode.CARTESIAN
+            self._tem_illumination.Tilt = tilt
+        else:
+            self._tem_illumination.Tilt = tilt

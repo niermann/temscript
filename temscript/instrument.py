@@ -1,7 +1,7 @@
 __all__ = ("version", "GetInstrument")
 
 # Set temscript version string
-version = "1.0.5"
+version = "1.0.7"
 
 try:
     # Where the _temscript module is available and the COM interface works (i.e. the microscope's computer)

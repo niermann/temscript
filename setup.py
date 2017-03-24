@@ -12,11 +12,11 @@ else:
     py_includes = []
 
 _temscript_module = Extension('_temscript',
-                              glob.glob(os.path.join('_temscript', '*.cpp')),
+                              glob.glob(os.path.join('_temscript_module', '*.cpp')),
                               include_dirs=py_includes)
 
 setup(name = 'temscript',
-      version = '1.0.6',
+      version = '1.0.7',
       description = 'TEM Scripting adapter for FEI microscopes',
       author = 'Tore Niermann',
       author_email = 'niermann (at) physik.tu-berlin.de',

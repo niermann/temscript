@@ -132,6 +132,24 @@ class MicroscopeClient(object):
         self._request("PUT", "/v1/image_shift", body=content, accepted_response=[200, 204],
                       headers={"Content-Type": "application/json"})
 
+    def get_beam_shift(self):
+        response, body = self._request("GET", "/v1/beam_shift")
+        return body
+
+    def set_beam_shift(self, pos):
+        content = json.dumps(tuple(pos)).encode("utf-8")
+        self._request("PUT", "/v1/beam_shift", body=content, accepted_response=[200, 204],
+                      headers={"Content-Type": "application/json"})
+
+    def get_beam_tilt(self):
+        response, body = self._request("GET", "/v1/beam_tilt")
+        return body
+
+    def set_beam_tilt(self, pos):
+        content = json.dumps(tuple(pos)).encode("utf-8")
+        self._request("PUT", "/v1/beam_tilt", body=content, accepted_response=[200, 204],
+                      headers={"Content-Type": "application/json"})
+
     allowed_types = {"INT8", "INT16", "INT32", "INT64", "UINT8", "UINT16", "UINT32", "UINT64", "FLOAT32", "FLOAT64"}
     allowed_endianness = {"LITTLE", "BIG"}
 

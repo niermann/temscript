@@ -21,6 +21,8 @@ Requirements:
     Numpy (tested with 1.6)
     Sphinx (only for building documentation, tested with 1.1.3)
     A compiler (tested with MS Visual Studio 8/10)
+    FEI Microscope's scripting adapter DLL. On a Titan V1.1 PC typically located in
+        C:\Titan\Scripting\stdscript.dll
 
 Alternatively, use the Anaconda python distribution (you still need
 the compiler though)
@@ -29,7 +31,7 @@ the compiler though)
 
 Install your own microscope's scripting adapters type library:
     1) Copy your version of the scripting adapter's stdscript.dll into 
-    to the _temscript subdirectory
+    to the _temscript_module subdirectory
 
 Simply execute from the command line (assuming you have your python 
 interpreter in the path):
@@ -67,7 +69,7 @@ Relative to Titan V1.1 scripting adapter:
 
 -- Copyright & Disclaimer -----------------------------------------
 
-Copyright (c) 2012-2016 by Tore Niermann
+Copyright (c) 2012-2017 by Tore Niermann
 Contact: niermann (at) physik.tu-berlin.de
 
 All product and company names are trademarks or registered trademarks 

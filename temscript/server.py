@@ -117,6 +117,10 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             response = self.server.microscope.get_detectors()
         elif endpoint == "image_shift":
             response = self.server.microscope.get_image_shift()
+        elif endpoint == "beam_shift":
+            response = self.server.microscope.get_beam_shift()
+        elif endpoint == "beam_tilt":
+            response = self.server.microscope.get_beam_tilt()
         elif endpoint.startswith("detector_param/"):
             try:
                 name = endpoint[15:]
@@ -155,6 +159,10 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             self.server.microscope.set_stage_position(pos, method=method)
         elif endpoint == "image_shift":
             self.server.microscope.set_image_shift(decoded_content)
+        elif endpoint == "beam_shift":
+            self.server.microscope.set_beam_shift(decoded_content)
+        elif endpoint == "beam_tilt":
+            self.server.microscope.set_beam_tilt(decoded_content)
         elif endpoint.startswith("detector_param/"):
             try:
                 name = endpoint[15:]
