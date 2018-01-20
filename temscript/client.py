@@ -80,6 +80,10 @@ class MicroscopeClient(object):
         response, body = self._request("GET", "/v1/family")
         return body
 
+    def get_version(self):
+        response, body = self._request("GET", "/v1/version")
+        return body
+
     def get_stage_holder(self):
         response, body = self._request("GET", "/v1/stage_holder")
         return body

@@ -48,6 +48,17 @@ class Microscope(object):
         """Return product family (see :class:`ProductFamily`): "TITAN", "TECNAI", ..."""
         return ProductFamily(self._family).name
 
+    def get_version(self):
+        """
+        Return version string for temscript.
+
+        .. versionadded:: 1.0.8
+
+        :return: String "major.minor.patchlevel"
+        """
+        from temscript.instrument import version
+        return version
+
     def get_vacuum(self):
         """
         Return status of the vacuum system. The method will return a dict with the following entries:
