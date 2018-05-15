@@ -16,7 +16,7 @@ except ImportError:
     from urlparse import urlparse, parse_qs, quote
     from cStringIO import StringIO as BytesIO
 
-from temscript.microscope import Microscope
+from .microscope import Microscope
 
 # Numpy array encoding JSON encoder
 class ArrayJSONEncoder(json.JSONEncoder):

@@ -17,10 +17,12 @@ except ImportError:
 
 
 class MicroscopeClient(object):
-    def __init__(self, address, transport="JSON"):
+    def __init__(self, address, transport=None):
         self.host = address[0]
         self.port = address[1]
         self._conn = None
+        if transport is None:
+            transport = "JSON"
         if transport == "JSON":
             self.accepted_content = ["application/json"]
         elif transport == "PICKLE":

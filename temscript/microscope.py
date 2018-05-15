@@ -1,5 +1,5 @@
 from __future__ import division, print_function
-from temscript.enums import *
+from .enums import *
 import math
 
 # Get imports from library
@@ -67,6 +67,9 @@ class Microscope(object):
             * "column_valves_open": Whether the column valves are currently open
             * "pvp_running": Whether the PVP is running
             * "gauges(Pa)": dict with Gauge values in Pascal (or the string "UNDERFLOW" or "OVERFLOW")
+
+        .. versionchanged: 1.0.8
+            Name of "gauges" return value changed
         """
         gauges = {}
         for g in self._tem_vacuum.Gauges:

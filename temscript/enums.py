@@ -6,7 +6,7 @@ except ImportError:
     # Python 2.X
     from enum34 import IntEnum
 
-import temscript.constants as const
+from . import constants as const
 
 __all__ = ("DetectorType", "VacuumStatus", "GaugeStatus", "GaugePressureLevel", "StageStatus", "StageHolderType",
            "IlluminationNormalization", "IlluminationMode", "DarkFieldMode", "CondenserMode", "ProjectionNormalization",
