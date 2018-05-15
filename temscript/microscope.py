@@ -85,7 +85,7 @@ class Microscope(object):
             "status" : VacuumStatus(self._tem_vacuum.Status).name,
             "column_valves_open" : self._tem_vacuum.ColumnValvesOpen,
             "pvp_running" : self._tem_vacuum.PVPRunning,
-            "gauges_Pa" : gauges,
+            "gauges(Pa)" : gauges,
         }
 
     def get_stage_holder(self):
