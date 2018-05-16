@@ -105,6 +105,8 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             response = self.server.microscope.get_family()
         elif endpoint == "version":
             response = self.server.microscope.get_version()
+        elif endpoint == "microscope_id":
+            response = self.server.microscope.get_microscope_id()
         elif endpoint == "vacuum":
             response = self.server.microscope.get_vacuum()
         elif endpoint == "stage_holder":

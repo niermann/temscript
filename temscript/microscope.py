@@ -48,6 +48,15 @@ class Microscope(object):
         """Return product family (see :class:`ProductFamily`): "TITAN", "TECNAI", ..."""
         return ProductFamily(self._family).name
 
+    def get_microscope_id(self):
+        """
+        Return microscope ID.
+        Their is no way to read this via the scripting adapter directly.
+        We here use the hostname instead
+        """
+        import socket
+        return socket.gethostname()
+
     def get_version(self):
         """
         Return version string for temscript.

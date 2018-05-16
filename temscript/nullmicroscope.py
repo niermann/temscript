@@ -39,15 +39,12 @@ class NullMicroscope(object):
         return "NULL"
 
     def get_version(self):
-        """
-        Return version string for temscript.
-
-        .. versionadded:: 1.0.8
-
-        :return: String "major.minor.patchlevel"
-        """
         from temscript.instrument import version
         return version
+
+    def get_microscope_id(self):
+        import socket
+        return socket.gethostname()
 
     def get_vacuum(self):
         return {
