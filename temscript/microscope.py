@@ -34,7 +34,7 @@ class Microscope(object):
     STAGE_AXES = frozenset(('x', 'y', 'z', 'a', 'b'))
 
     def __init__(self):
-        from temscript.instrument import GetInstrument
+        from .instrument import GetInstrument
         tem = GetInstrument()
         self._tem_instrument = tem
         self._tem_gun = tem.Gun
@@ -66,8 +66,8 @@ class Microscope(object):
 
         :return: String "major.minor.patchlevel"
         """
-        from temscript.instrument import version
-        return version
+        from .version import __version__
+        return __version__
 
     def get_high_tension(self):
         """

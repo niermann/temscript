@@ -6,6 +6,9 @@ import glob
 import os.path
 import sys
 
+# Read version
+execfile('temscript/version.py')
+
 def get_version():
     from temscript.instrument import version
 
@@ -17,13 +20,13 @@ else:
     ext_modules = []
 
 setup(name = 'temscript',
-      version = '1.0.7',
+      version = __version__,
       description = 'TEM Scripting adapter for FEI microscopes',
       author = 'Tore Niermann',
-      author_email = 'niermann (at) physik.tu-berlin.de',
+      author_email = 'tore.niermann@tu-berlin.de',
       packages=['temscript'],
       requires = ['numpy', 'enum34'],
-      ext_modules = [_temscript_module],
+      ext_modules = ext_modules,
       classifiers = ['Development Status :: 4 - Beta',
                      'Environment :: Win32 (MS Windows)',
                      'Intended Audience :: Science/Research',
