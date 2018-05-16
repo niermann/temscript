@@ -17,7 +17,7 @@ class NullMicroscope(object):
     CCD_SIZE = 2048
     CCD_BINNINGS = [1, 2, 4, 8]
 
-    def __init__(self, wait_exposure=None):
+    def __init__(self, wait_exposure=None, high_tension=200.0):
         self._column_valves = False
         self._stage_pos = { 'x': 0.0, 'y': 0.0, 'z': 0.0, 'a': 0.0, 'b': 0.0 }
         self._wait_exposure = bool(wait_exposure)
@@ -31,6 +31,7 @@ class NullMicroscope(object):
             "pre_exposure(s)": 0.0,
             "pre_exposure_pause(s)": 0.0
         }
+        self._high_tension = high_tension
         self._image_shift = np.zeros(2, dtype=float)
         self._beam_shift = np.zeros(2, dtype=float)
         self._beam_tilt = np.zeros(2, dtype=float)
@@ -38,13 +39,16 @@ class NullMicroscope(object):
     def get_family(self):
         return "NULL"
 
+    def get_microscope_id(self):
+        import socket
+        return socket.gethostname()
+
     def get_version(self):
         from temscript.instrument import version
         return version
 
-    def get_microscope_id(self):
-        import socket
-        return socket.gethostname()
+    def get_high_tension(self):
+        return self._high_tension
 
     def get_vacuum(self):
         return {

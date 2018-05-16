@@ -103,10 +103,12 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
         response = None
         if endpoint == "family":
             response = self.server.microscope.get_family()
-        elif endpoint == "version":
-            response = self.server.microscope.get_version()
         elif endpoint == "microscope_id":
             response = self.server.microscope.get_microscope_id()
+        elif endpoint == "version":
+            response = self.server.microscope.get_version()
+        elif endpoint == "high_tension":
+            response = self.server.microscope.get_high_tension()
         elif endpoint == "vacuum":
             response = self.server.microscope.get_vacuum()
         elif endpoint == "stage_holder":

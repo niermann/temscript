@@ -6,14 +6,15 @@ import glob
 import os.path
 import sys
 
-if sys.platform == 'win32':
-    py_includes = [os.path.join(get_python_inc(), '../Lib/site-packages/numpy/core/include/')]
-else:
-    py_includes = []
+def get_version():
+    from temscript.instrument import version
 
-_temscript_module = Extension('_temscript',
-                              glob.glob(os.path.join('_temscript_module', '*.cpp')),
-                              include_dirs=py_includes)
+if sys.platform == 'win32':
+    # Only build _temscript c++ adapter on windows platforms
+    py_includes = [os.path.join(get_python_inc(), '../Lib/site-packages/numpy/core/include/')]
+    ext_modules = [Extension('_temscript', glob.glob(os.path.join('_temscript_module', '*.cpp')),include_dirs=py_includes)]
+else:
+    ext_modules = []
 
 setup(name = 'temscript',
       version = '1.0.7',

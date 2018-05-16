@@ -90,6 +90,10 @@ class MicroscopeClient(object):
         response, body = self._request("GET", "/v1/version")
         return body
 
+    def get_high_tension(self):
+        response, body = self._request("GET", "/v1/high_tension")
+        return body
+
     def get_stage_holder(self):
         response, body = self._request("GET", "/v1/stage_holder")
         return body

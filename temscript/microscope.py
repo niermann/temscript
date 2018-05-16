@@ -37,6 +37,7 @@ class Microscope(object):
         from temscript.instrument import GetInstrument
         tem = GetInstrument()
         self._tem_instrument = tem
+        self._tem_gun = tem.Gun
         self._tem_illumination = tem.Illumination
         self._tem_projection = tem.Projection
         self._tem_stage = tem.Stage
@@ -67,6 +68,18 @@ class Microscope(object):
         """
         from temscript.instrument import version
         return version
+
+    def get_high_tension(self):
+        """
+        Return high tension in kV.
+
+        :return: Float with high tension
+        """
+        state = self._tem_gun.HTState
+        if state == HighTensionState.ON:
+            return self._tem_gun.HTValue
+        else:
+            return 0.0
 
     def get_vacuum(self):
         """
