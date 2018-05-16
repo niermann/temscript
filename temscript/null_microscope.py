@@ -1,8 +1,8 @@
 from __future__ import division, print_function
 import numpy as np
-from temscript.enums import *
 from math import pi
 
+from .enums import *
 from .microscope import _parse_enum
 
 
@@ -44,8 +44,8 @@ class NullMicroscope(object):
         return socket.gethostname()
 
     def get_version(self):
-        from temscript.instrument import version
-        return version
+        from .version import __version__
+        return __version__
 
     def get_high_tension(self):
         return self._high_tension

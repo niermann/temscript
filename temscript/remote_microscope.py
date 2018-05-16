@@ -16,7 +16,7 @@ except ImportError:
     from cStringIO import StringIO as BytesIO
 
 
-class MicroscopeClient(object):
+class RemoteMicroscope(object):
     def __init__(self, address, transport=None):
         self.host = address[0]
         self.port = address[1]

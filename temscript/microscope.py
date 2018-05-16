@@ -324,7 +324,7 @@ class Microscope(object):
             * "binning": Binning
             * "dwelltime(s)": Dwell time in seconds
         """
-        from temscript.instrument import CCDCamera, STEMDetector
+        from .instrument import CCDCamera, STEMDetector
         det = self._find_detector(name)
         if isinstance(det, CCDCamera):
             return self._get_camera_param(det)
@@ -339,7 +339,7 @@ class Microscope(object):
         Allowed keys are described in the :meth:`get_detector_param` method.
         If setting a parameter fails, no error is given.
         """
-        from temscript.instrument import CCDCamera, STEMDetector
+        from .instrument import CCDCamera, STEMDetector
         det = self._find_detector(name)
         if isinstance(det, CCDCamera):
             self._set_camera_param(det, param)
