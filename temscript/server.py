@@ -231,7 +231,6 @@ def run_server(argv=None, microscope_factory=None):
     parser.add_argument("--host", type=str, default='', help="Specify host address on which the the server is listening")
     args = parser.parse_args(argv)
 
-    print(args)
     try:
         # Create a web server and define the handler to manage the incoming request
         server = MicroscopeServer((args.host, args.port), MicroscopeHandler, microscope_factory=microscope_factory)
@@ -246,3 +245,7 @@ def run_server(argv=None, microscope_factory=None):
         server.socket.close()
 
     return 0
+
+
+if __name__ == '__main__':
+    run_server()
