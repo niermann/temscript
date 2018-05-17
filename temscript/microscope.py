@@ -69,15 +69,15 @@ class Microscope(object):
         from .version import __version__
         return __version__
 
-    def get_high_tension(self):
+    def get_voltage(self):
         """
-        Return high tension in kV.
+        Return acceleration voltage in kV.
 
-        :return: Float with high tension
+        :return: Float with voltage
         """
         state = self._tem_gun.HTState
         if state == HighTensionState.ON:
-            return self._tem_gun.HTValue
+            return self._tem_gun.HTValue * 1e-3
         else:
             return 0.0
 

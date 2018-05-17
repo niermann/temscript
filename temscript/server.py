@@ -47,9 +47,6 @@ class ArrayJSONEncoder(json.JSONEncoder):
             }
         return json.JSONEncoder.default(self, obj)
 
-# Setable object as ping-pong test thingie
-_test = "empty string"
-
 
 def _gzipencode(content):
     """GZIP encode bytes object"""
@@ -107,8 +104,8 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             response = self.server.microscope.get_microscope_id()
         elif endpoint == "version":
             response = self.server.microscope.get_version()
-        elif endpoint == "high_tension":
-            response = self.server.microscope.get_high_tension()
+        elif endpoint == "voltage":
+            response = self.server.microscope.get_voltage()
         elif endpoint == "vacuum":
             response = self.server.microscope.get_vacuum()
         elif endpoint == "stage_holder":
@@ -141,8 +138,6 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
                 self.send_error(404, 'No detectors: %s' % self.path)
                 return
             response = self.server.microscope.acquire(*detectors)
-        elif endpoint == "test":
-            response = _test
         else:
             self.send_error(404, 'Unknown endpoint: %s' % self.path)
             return
@@ -176,9 +171,6 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             except KeyError:
                 self.send_error(404, 'Unknown detector: %s' % self.path)
                 return
-        elif endpoint == "test":
-            global _test
-            _test = decoded_content
         else:
             self.send_error(404, 'Unknown endpoint: %s' % self.path)
             return

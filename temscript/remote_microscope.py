@@ -77,15 +77,6 @@ class RemoteMicroscope(object):
             raise ValueError("Unsupported response type: %s", content_type)
         return response, body
 
-    def get_test(self):
-        response, body = self._request("GET", "/v1/test")
-        return body
-
-    def set_test(self, value):
-        content = json.dumps(value).encode("utf-8")
-        self._request("PUT", "/v1/test", body=content, accepted_response=[200, 204],
-                      headers={"Content-Type": "application/json"})
-
     def get_family(self):
         response, body = self._request("GET", "/v1/family")
         return body
@@ -98,8 +89,8 @@ class RemoteMicroscope(object):
         response, body = self._request("GET", "/v1/version")
         return body
 
-    def get_high_tension(self):
-        response, body = self._request("GET", "/v1/high_tension")
+    def get_voltage(self):
+        response, body = self._request("GET", "/v1/voltage")
         return body
 
     def get_stage_holder(self):
@@ -208,7 +199,7 @@ if __name__ == '__main__':
     SERVER_HOST = 'localhost'
     #SERVER_HOST = '192.168.99.10'
     TRANSPORT = "JSON" # "PICKLE"
-    client = MicroscopeClient((SERVER_HOST, SERVER_PORT), transport=TRANSPORT)
+    client = RemoteMicroscope((SERVER_HOST, SERVER_PORT), transport=TRANSPORT)
 
     if 0:
         print("TEST-1", client.get_test())

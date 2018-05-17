@@ -12,8 +12,8 @@ class NullMicroscope(object):
 
     :param wait_exposure: Whether the acquire calls waits the exposure time until returning, emulating the timing of the real microscope
     :type wait_exposure: bool
-    :param high_tension: High tension value the microscope report in kV
-    :type high_tension: float
+    :param voltage: High tension value the microscope report in kV
+    :type voltage: float
     """
     STAGE_XY_RANGE = 1e-3       # meters
     STAGE_Z_RANGE = 0.3e-3      # meters
@@ -22,7 +22,7 @@ class NullMicroscope(object):
     CCD_SIZE = 2048
     CCD_BINNINGS = [1, 2, 4, 8]
 
-    def __init__(self, wait_exposure=None, high_tension=200.0):
+    def __init__(self, wait_exposure=None, voltage=200.0):
         self._column_valves = False
         self._stage_pos = { 'x': 0.0, 'y': 0.0, 'z': 0.0, 'a': 0.0, 'b': 0.0 }
         self._wait_exposure = bool(wait_exposure) if wait_exposure is not None else True
@@ -36,7 +36,7 @@ class NullMicroscope(object):
             "pre_exposure(s)": 0.0,
             "pre_exposure_pause(s)": 0.0
         }
-        self._high_tension = high_tension
+        self._voltage = voltage
         self._image_shift = np.zeros(2, dtype=float)
         self._beam_shift = np.zeros(2, dtype=float)
         self._beam_tilt = np.zeros(2, dtype=float)
@@ -52,8 +52,8 @@ class NullMicroscope(object):
         from .version import __version__
         return __version__
 
-    def get_high_tension(self):
-        return self._high_tension
+    def get_voltage(self):
+        return self._voltage
 
     def get_vacuum(self):
         return {
