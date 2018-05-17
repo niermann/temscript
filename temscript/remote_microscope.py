@@ -17,6 +17,14 @@ except ImportError:
 
 
 class RemoteMicroscope(object):
+    """
+    Microscope-like class, which connects to a remote microscope server.
+
+    Use the ``temscript-server`` command line script to run a microscope server.
+
+    :param address: (host, port) combination for the remote microscope.
+    :param transport: Underlying transport protocol, either 'JSON' (default) or 'pickle'
+    """
     def __init__(self, address, transport=None):
         self.host = address[0]
         self.port = address[1]

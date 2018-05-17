@@ -8,7 +8,12 @@ from .microscope import _parse_enum
 
 class NullMicroscope(object):
     """
-    Null Microscope driver.
+    Microscope-like class which emulates an microscope.
+
+    :param wait_exposure: Whether the acquire calls waits the exposure time until returning, emulating the timing of the real microscope
+    :type wait_exposure: bool
+    :param high_tension: High tension value the microscope report in kV
+    :type high_tension: float
     """
     STAGE_XY_RANGE = 1e-3       # meters
     STAGE_Z_RANGE = 0.3e-3      # meters
@@ -20,7 +25,7 @@ class NullMicroscope(object):
     def __init__(self, wait_exposure=None, high_tension=200.0):
         self._column_valves = False
         self._stage_pos = { 'x': 0.0, 'y': 0.0, 'z': 0.0, 'a': 0.0, 'b': 0.0 }
-        self._wait_exposure = bool(wait_exposure)
+        self._wait_exposure = bool(wait_exposure) if wait_exposure is not None else True
         self._ccd_param = {
             "image_size": "FULL",
             "exposure(s)": 1.0,

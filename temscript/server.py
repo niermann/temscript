@@ -13,10 +13,10 @@ try:
 except ImportError:
     # Python 2.X
     from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-    from urlparse import urlparse, parse_qs, quote
+    from urlparse import urlparse, parse_qs
+    from urllib import pathname2url as quote
     from cStringIO import StringIO as BytesIO
 
-from .microscope import Microscope
 
 # Numpy array encoding JSON encoder
 class ArrayJSONEncoder(json.JSONEncoder):
@@ -213,21 +213,37 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             self.send_error(500, "Error handling request: %s" % self.path)
 
 
-class MicroscopeServer(HTTPServer):
+class MicroscopeServer(HTTPServer, object):
     def __init__(self, *args, **kw):
+        microscope_factory = kw.pop("microscope_factory", None)
+        if microscope_factory is None:
+            from .microscope import Microscope
+            microscope_factory = Microscope
         super(MicroscopeServer, self).__init__(*args, **kw)
-        self.microscope = Microscope()
+        self.microscope = microscope_factory()
 
 
-if __name__ == '__main__':
-    SERVER_PORT = 8080
-    SERVER_HOST = ''    # Empty is any interface
+def run_server(argv=None, microscope_factory=None):
+    """
+    Main program for running the server
 
+    :param argv: Arguments
+    :type argv: List of str (see sys.argv)
+    :param microscope_factory: Factory function for creation of microscope
+    :type microscope_factory: callable without arguments
+    :returns: Exit code
+    """
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-p", "--port", type=int, default=8080, help="Specify port on which the server is listening")
+    parser.add_argument("--host", type=str, default='', help="Specify host address on which the the server is listening")
+    args = parser.parse_args(argv)
+
+    print(args)
     try:
-        # Create a web server and define the handler to manage the
-        # incoming request
-        server = MicroscopeServer((SERVER_HOST, SERVER_PORT), MicroscopeHandler)
-        print("Started httpserver on host '%s' port %d." % (SERVER_HOST, SERVER_PORT))
+        # Create a web server and define the handler to manage the incoming request
+        server = MicroscopeServer((args.host, args.port), MicroscopeHandler, microscope_factory=microscope_factory)
+        print("Started httpserver on host '%s' port %d." % (args.host, args.port))
         print("Press Ctrl+C to stop server.")
 
         # Wait forever for incoming htto requests
@@ -236,3 +252,5 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print('Ctrl+C received, shutting down the web server')
         server.socket.close()
+
+    return 0
