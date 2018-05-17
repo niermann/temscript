@@ -14,7 +14,8 @@
 import sys, os
 
 # Import version number
-execfile('../temscript/version.py')
+with open("../temscript/version.py") as fp:
+    exec(fp.read())
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the

@@ -7,7 +7,8 @@ import os.path
 import sys
 
 # Read version
-execfile('temscript/version.py')
+with open("temscript/version.py") as fp:
+    exec(fp.read())
 
 # Only build _temscript c++ adapter on windows platforms
 if sys.platform == 'win32':
