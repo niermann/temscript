@@ -1,3 +1,5 @@
 /dist
 /build
 _temscript/stdscript.dll
+docs/_build
+.idea
