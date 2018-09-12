@@ -35,6 +35,8 @@ class RemoteMicroscope(object):
             self.accepted_content = ["application/json"]
         elif transport == "PICKLE":
             self.accepted_content = ["application/python-pickle"]
+        else:
+            raise ValueError("Unknown transport protocol.")
 
     def _request(self, method, endpoint, query={}, body=None, headers={}, accepted_response=[200]):
         # Make connection
@@ -196,8 +198,8 @@ class RemoteMicroscope(object):
 
 if __name__ == '__main__':
     SERVER_PORT = 8080
-    SERVER_HOST = 'localhost'
-    #SERVER_HOST = '192.168.99.10'
+    #SERVER_HOST = 'localhost'
+    SERVER_HOST = '192.168.99.10'
     TRANSPORT = "JSON" # "PICKLE"
     client = RemoteMicroscope((SERVER_HOST, SERVER_PORT), transport=TRANSPORT)
 
