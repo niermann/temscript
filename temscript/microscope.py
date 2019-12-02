@@ -368,11 +368,11 @@ class Microscope(object):
 
     def get_image_shift(self):
         """
-        Return image shift as (x,y) tuple.
+        Return image shift as (x,y) tuple in meters.
 
-        The units this is returned in are meters. The accuracy of ths value depends on the accuracy of the
-        calibration within the microscope and thus is better not to be trusted blindly.
-        
+         .. note::
+            The accuracy of this value depends on the accuracy of the calibration within the microscope.
+
         On FEI microscopes this corresponds to the state of "User Image Shift" (in different units though).
         """
         return self._tem_projection.ImageShift
@@ -385,10 +385,10 @@ class Microscope(object):
 
     def get_beam_shift(self):
         """
-        Return beam shift as (x,y) tuple.
+        Return beam shift as (x,y) tuple in meters.
 
-        The units this is returned in are meters. The accuracy of ths value depends on the accuracy of the
-        calibration within the microscope and thus is better not to be trusted blindly.
+        .. note::
+            The accuracy of this value depends on the accuracy of the calibration within the microscope.
        
         On FEI microscopes this corresponds to the state of "User Beam Shift" (in different units though).
         """
@@ -552,6 +552,10 @@ class Microscope(object):
         Get defocus. The returned value is in arbitrary units. Increasing values go into overfocus direction, negative
         values into underfocus direction.
 
+        .. note::
+            On Titan 1.1 software the defocus value is the actual defocus relative to the eucentric defocus in meters.
+            The accuracy of this value depends on the accuracy of the calibration within the microscope.
+
         .. versionadded:: 1.0.9
         """
         return self._tem_projection.Focus
@@ -561,8 +565,12 @@ class Microscope(object):
         Sets defocus. The value is in arbitrary units. Increasing values go into overfocus direction, negative
         values into underfocus direction.
 
+        .. note::
+            On Titan 1.1 software the defocus value is the actual defocus relative to the eucentric defocus in meters.
+            The accuracy of this value depends on the accuracy of the calibration within the microscope.
+
         :param defocus: Defocus to set
-        :param defocus: float
+        :type defocus: float
 
         .. versionadded:: 1.0.9
         """
