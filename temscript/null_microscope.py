@@ -186,8 +186,32 @@ class NullMicroscope(object):
         mode = _parse_enum(ProjectionMode, mode)
         self._projection_mode = mode
 
+    def get_projection_mode_string(self):
+        return "SA"
+
     def get_magnification_index(self):
         return self._magnification_index
 
     def set_magnification_index(self, index):
         self.get_magnification_index = index
+
+    def get_indicated_camera_length(self):
+        if self._projection_mode == ProjectionMode.IMAGING:
+            return self._magnification_index * 0.1
+        else:
+            return 0
+
+    def get_indicated_magnification(self):
+        if self._projection_mode == ProjectionMode.DIFFRACTION:
+            return self._magnification_index * 10000
+        else:
+            return 0
+
+    def get_defocus(self):
+        return self._defocus
+
+    def set_defocus(self, value):
+        self._defocus = float(value)
+
+    def get_objective_excitation(self):
+        return self._defocus

@@ -210,6 +210,10 @@ class RemoteMicroscope(object):
         self._request("PUT", "/v1/projection_mode", body=content, accepted_response=[200, 204],
                       headers={"Content-Type": "application/json"})
 
+    def get_projection_mode_string(self):
+        response, body = self._request("GET", "/v1/projection_mode_string")
+        return body
+
     def get_magnification_index(self):
         response, body = self._request("GET", "/v1/magnification_index")
         return body
@@ -218,6 +222,27 @@ class RemoteMicroscope(object):
         content = json.dumps(index).encode("utf-8")
         self._request("PUT", "/v1/magnification_index", body=content, accepted_response=[200, 204],
                       headers={"Content-Type": "application/json"})
+
+    def get_indicated_camera_length(self):
+        response, body = self._request("GET", "/v1/indicated_camera_length")
+        return body
+
+    def get_indicated_magnification(self):
+        response, body = self._request("GET", "/v1/indicated_magnification")
+        return body
+
+    def get_defocus(self):
+        response, body = self._request("GET", "/v1/defocus")
+        return body
+
+    def set_defocus(self, value):
+        content = json.dumps(value).encode("utf-8")
+        self._request("PUT", "/v1/defocus", body=content, accepted_response=[200, 204],
+                      headers={"Content-Type": "application/json"})
+
+    def get_objective_excitation(self):
+        response, body = self._request("GET", "/v1/objective_excitation")
+        return body
 
 
 if __name__ == '__main__':

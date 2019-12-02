@@ -126,8 +126,18 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             response = self.server.microscope.get_beam_tilt()
         elif endpoint == "projection_mode":
             response = self.server.microscope.get_projection_mode()
+        elif endpoint == "projection_mode_string":
+            response = self.server.microscope.get_projection_mode_string()
         elif endpoint == "magnification_index":
             response = self.server.microscope.get_magnification_index()
+        elif endpoint == "indicated_camera_length":
+            response = self.server.microscope.get_indicated_camera_length()
+        elif endpoint == "indicated_magnification":
+            response = self.server.microscope.get_indicated_magnification()
+        elif endpoint == "defocus":
+            response = self.server.microscope.get_defocus()
+        elif endpoint == "objective_excitation":
+            response = self.server.microscope.get_objective_excitation()
         elif endpoint.startswith("detector_param/"):
             try:
                 name = endpoint[15:]
@@ -172,6 +182,8 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             self.server.microscope.set_projection_mode(decoded_content)
         elif endpoint == "magnification_index":
             self.server.microscope.set_magnification_index(decoded_content)
+        elif endpoint == "defocus":
+            self.server.microscope.set_defocus(decoded_content)
         elif endpoint.startswith("detector_param/"):
             try:
                 name = endpoint[15:]

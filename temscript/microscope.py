@@ -455,6 +455,8 @@ class Microscope(object):
 
         :param mode: What to normalize. If omitted, all lenses are normalized.
         :type mode: str
+
+        .. versionadded:: 1.0.9
         """
         mode = mode.upper()
         if mode == "SPOTSIZE":
@@ -478,9 +480,11 @@ class Microscope(object):
         else:
             raise ValueError("Unknown normalization mode: %s" % mode)
 
-    def get_projection_mode(self, mode):
+    def get_projection_mode(self):
         """
         Return current projection mode.
+
+        .. versionadded:: 1.0.9
         """
         return ProjectionMode(self._tem_projection.Mode).name
 
@@ -490,13 +494,25 @@ class Microscope(object):
 
         :param mode: Projection mode: "DIFFRACTION" or "IMAGING"
         :type mode: str
+
+        .. versionadded:: 1.0.9
         """
         mode = _parse_enum(ProjectionMode, mode)
         self._tem_projection.Mode = mode
 
+    def get_projection_mode_string(self):
+        """
+        Description of current projection mode. Possible return values are: "LM", Mi", "SA", "Mh", "LAD", and "D"
+
+        .. versionadded:: 1.0.9
+        """
+        return ProjectionSubMode(self._tem_projection.SubMode).name
+
     def get_magnification_index(self):
         """
         Return index of current magnification/camera length.
+
+        .. versionadded:: 1.0.9
         """
         return self._tem_projection.ProjectionIndex
 
@@ -506,6 +522,56 @@ class Microscope(object):
 
         :param index: Magnification/Camera length index
         :type index: int
+
+        .. versionadded:: 1.0.9
         """
         index = int(index)
         self._tem_projection.ProjectionIndex = index
+
+    def get_indicated_camera_length(self):
+        """
+        Get (indicated) camera length in meters in diffraction modes. If microscope is in imaging mode, 0 is returned.
+
+        .. versionadded:: 1.0.9
+        """
+        return self._tem_projection.CameraLength
+
+    def get_indicated_magnification(self):
+        """
+        Get (indicated) magnification in imaging modes. If microscope is in diffraction mode, 0 is returned.
+
+        .. note::
+            On Titan 1.1 software this method returns 0.0 regardless of used mode.
+
+        .. versionadded:: 1.0.9
+        """
+        return self._tem_projection.Magnification
+
+    def get_defocus(self):
+        """
+        Get defocus. The returned value is in arbitrary units. Increasing values go into overfocus direction, negative
+        values into underfocus direction.
+
+        .. versionadded:: 1.0.9
+        """
+        return self._tem_projection.Focus
+
+    def set_defocus(self, value):
+        """
+        Sets defocus. The value is in arbitrary units. Increasing values go into overfocus direction, negative
+        values into underfocus direction.
+
+        :param defocus: Defocus to set
+        :param defocus: float
+
+        .. versionadded:: 1.0.9
+        """
+        self._tem_projection.Focus = float(value)
+
+    def get_objective_excitation(self):
+        """
+        Excitation of objective lens.
+
+        .. versionadded:: 1.0.9
+        """
+        return self._tem_projection.ObjectiveExcitation
