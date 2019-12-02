@@ -124,6 +124,10 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             response = self.server.microscope.get_beam_shift()
         elif endpoint == "beam_tilt":
             response = self.server.microscope.get_beam_tilt()
+        elif endpoint == "projection_mode":
+            response = self.server.microscope.get_projection_mode()
+        elif endpoint == "magnification_index":
+            response = self.server.microscope.get_magnification_index()
         elif endpoint.startswith("detector_param/"):
             try:
                 name = endpoint[15:]
@@ -164,12 +168,23 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             self.server.microscope.set_beam_shift(decoded_content)
         elif endpoint == "beam_tilt":
             self.server.microscope.set_beam_tilt(decoded_content)
+        elif endpoint == "projection_mode":
+            self.server.microscope.set_projection_mode(decoded_content)
+        elif endpoint == "magnification_index":
+            self.server.microscope.set_magnification_index(decoded_content)
         elif endpoint.startswith("detector_param/"):
             try:
                 name = endpoint[15:]
                 response = self.server.microscope.set_detector_param(name, decoded_content)
             except KeyError:
                 self.send_error(404, 'Unknown detector: %s' % self.path)
+                return
+        elif endpoint == "normalize":
+            mode = decoded_content
+            try:
+                self.server.microscope.normalize(mode)
+            except ValueError:
+                self.send_error(404, 'Unknown mode.' % mode)
                 return
         else:
             self.send_error(404, 'Unknown endpoint: %s' % self.path)

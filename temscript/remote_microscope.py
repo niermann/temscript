@@ -195,6 +195,30 @@ class RemoteMicroscope(object):
             body = result
         return body
 
+    def normalize(self, mode="ALL"):
+        mode = str(mode)
+        content = json.dumps(mode).encode("utf-8")
+        self._request("PUT", "/v1/acquire", body=content, accepted_response=[200, 204],
+                      headers={"Content-Type": "application/json"})
+
+    def get_projection_mode(self):
+        response, body = self._request("GET", "/v1/projection_mode")
+        return body
+
+    def set_projection_mode(self, mode):
+        content = json.dumps(mode).encode("utf-8")
+        self._request("PUT", "/v1/projection_mode", body=content, accepted_response=[200, 204],
+                      headers={"Content-Type": "application/json"})
+
+    def get_magnification_index(self):
+        response, body = self._request("GET", "/v1/magnification_index")
+        return body
+
+    def set_magnification_index(self, index):
+        content = json.dumps(index).encode("utf-8")
+        self._request("PUT", "/v1/magnification_index", body=content, accepted_response=[200, 204],
+                      headers={"Content-Type": "application/json"})
+
 
 if __name__ == '__main__':
     SERVER_PORT = 8080

@@ -15,7 +15,7 @@ def _parse_enum(type, item):
     """Try to parse 'item' (string or integer) to enum 'type'"""
     try:
         return type[item]
-    except:
+    except KeyError:
         return type(item)
 
 
@@ -436,3 +436,76 @@ class Microscope(object):
             self._tem_illumination.Tilt = tilt
         else:
             self._tem_illumination.Tilt = tilt
+
+    def normalize(self, mode="ALL"):
+        """
+        Normalize some or all lenses.
+
+        Possible values for lenses are:
+
+            * "SPOTSIZE": The C1 lens
+            * "INTENSITY": The C2 and - if present - the C3 lens
+            * "CONDENSER": C1, C2, and - if present - the C3 lens
+            * "MINI_CONDENSER": The mini condenser lens
+            * "OBJECTIVE": Objective and mini condenser lens
+            * "PROJECTOR": Projective lenses (DL, IL, P1, P2)
+            * "OBJECTIVE_CONDENSER": Objective and condenser system
+            * "OBJECTIVE_PROJECTOR": Objective and projector system
+            * "ALL": All lenses
+
+        :param mode: What to normalize. If omitted, all lenses are normalized.
+        :type mode: str
+        """
+        mode = mode.upper()
+        if mode == "SPOTSIZE":
+            self._tem_illumination.Normalize(IlluminationNormalization.SPOTSIZE)
+        elif mode == "INTENSITY":
+            self._tem_illumination.Normalize(IlluminationNormalization.INTENSITY)
+        elif mode == "CONDENSER":
+            self._tem_illumination.Normalize(IlluminationNormalization.CONDENSER)
+        elif mode == "MINI_CONDENSER":
+            self._tem_illumination.Normalize(IlluminationNormalization.MINI_CONDENSER)
+        elif mode == "OBJECTIVE":
+            self._tem_illumination.Normalize(IlluminationNormalization.OBJECTIVE)
+        elif mode == "PROJECTOR":
+            self._tem_projection.Normalize(ProjectionNormalization.PROJECTOR)
+        elif mode == "OBJECTIVE_CONDENSER":
+            self._tem_illumination.Normalize(IlluminationNormalization.ALL)
+        elif mode == "OBJECTIVE_PROJECTIVE":
+            self._tem_projection.Normalize(ProjectionNormalization.ALL)
+        elif mode == "ALL":
+            self._tem_instrument.NormalizeAll()
+        else:
+            raise ValueError("Unknown normalization mode: %s" % mode)
+
+    def get_projection_mode(self, mode):
+        """
+        Return current projection mode.
+        """
+        return ProjectionMode(self._tem_projection.Mode).name
+
+    def set_projection_mode(self, mode):
+        """
+        Set projection mode.
+
+        :param mode: Projection mode: "DIFFRACTION" or "IMAGING"
+        :type mode: str
+        """
+        mode = _parse_enum(ProjectionMode, mode)
+        self._tem_projection.Mode = mode
+
+    def get_magnification_index(self):
+        """
+        Return index of current magnification/camera length.
+        """
+        return self._tem_projection.ProjectionIndex
+
+    def set_magnification_index(self, index):
+        """
+        Set magnification / camera length index.
+
+        :param index: Magnification/Camera length index
+        :type index: int
+        """
+        index = int(index)
+        self._tem_projection.ProjectionIndex = index
