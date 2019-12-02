@@ -138,6 +138,8 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             response = self.server.microscope.get_defocus()
         elif endpoint == "objective_excitation":
             response = self.server.microscope.get_objective_excitation()
+        elif endpoint == "optics_state":
+            response = self.server.microscope.get_optics_state()
         elif endpoint.startswith("detector_param/"):
             try:
                 name = endpoint[15:]

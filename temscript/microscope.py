@@ -583,3 +583,29 @@ class Microscope(object):
         .. versionadded:: 1.0.9
         """
         return self._tem_projection.ObjectiveExcitation
+
+    def optics_state(self):
+        """
+        Return a dictionary with state of microscope optics.
+
+        .. versionadded:: 1.0.9
+        """
+        state = {
+            "family": self.get_family(),
+            "microscope_id": self.get_microscope_id(),
+            "temscript_version": self.get_version(),
+            "voltage(kV)": self.get_voltage(),
+            "stage_holder": self.get_stage_holder(),
+            "stage_position": self.get_stage_position(),
+            "image_shift": self.get_image_shift(),
+            "beam_shift": self.get_beam_shift(),
+            "beam_tilt": self.get_beam_tilt(),
+            "projection_mode": self.get_projection_mode(),
+            "projection_mode_string": self.get_projection_mode_string(),
+            "magnification_index": self.get_magnification_index(),
+            "indicated_camera_length": self.get_indicated_camera_length(),
+            "indicated_magnification": self.get_indicated_magnification(),
+            "defocus": self.get_defocus(),
+            "objective_excitation": self.get_objective_excitation()
+        }
+        return state

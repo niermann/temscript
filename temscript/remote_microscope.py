@@ -244,6 +244,10 @@ class RemoteMicroscope(object):
         response, body = self._request("GET", "/v1/objective_excitation")
         return body
 
+    def optics_state(self):
+        response, body = self._request("GET", "/v1/optics_state")
+        return body
+
 
 if __name__ == '__main__':
     SERVER_PORT = 8080
