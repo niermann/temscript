@@ -584,7 +584,7 @@ class Microscope(object):
         """
         return self._tem_projection.ObjectiveExcitation
 
-    def optics_state(self):
+    def get_optics_state(self):
         """
         Return a dictionary with state of microscope optics.
 

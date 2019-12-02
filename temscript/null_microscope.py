@@ -216,7 +216,7 @@ class NullMicroscope(object):
     def get_objective_excitation(self):
         return self._defocus
 
-    def optics_state(self):
+    def get_optics_state(self):
         state = {
             "family": self.get_family(),
             "microscope_id": self.get_microscope_id(),

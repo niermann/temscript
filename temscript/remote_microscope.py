@@ -244,7 +244,7 @@ class RemoteMicroscope(object):
         response, body = self._request("GET", "/v1/objective_excitation")
         return body
 
-    def optics_state(self):
+    def get_optics_state(self):
         response, body = self._request("GET", "/v1/optics_state")
         return body
 
