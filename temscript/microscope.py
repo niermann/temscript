@@ -19,6 +19,10 @@ def _parse_enum(type, item):
         return type(item)
 
 
+# Allowed stage axes
+STAGE_AXES = frozenset(('x', 'y', 'z', 'a', 'b'))
+
+
 class Microscope(object):
     """
     A more pythonic interface to the microscope.
@@ -29,9 +33,6 @@ class Microscope(object):
         >>> microscope.get_family()
         "TITAN"
     """
-
-    # Allowed stage axes
-    STAGE_AXES = frozenset(('x', 'y', 'z', 'a', 'b'))
 
     def __init__(self):
         from .instrument import GetInstrument
