@@ -310,6 +310,7 @@ class Microscope(object):
         For "CAMERA" detectors the dict will have the following keys:
 
             * "image_size": Size of image (see :class:`AcqImageSize`): "FULL", "HALF", ...
+            * "binning": Binning
             * "exposure(s)": Exposure time in seconds
             * "correction": Correction mode (see :class:`AcqImageCorrection`)
             * "exposure_mode": Exposure mode (see :class:`AcqExposureMode`)
