@@ -41,6 +41,8 @@ class NullMicroscope(object):
         self._beam_shift = np.zeros(2, dtype=float)
         self._beam_tilt = np.zeros(2, dtype=float)
         self._projection_mode = ProjectionMode.IMAGING
+        self._magnification_index = 10
+        self._defocus = 0.0
 
     def get_family(self):
         return "NULL"
@@ -196,13 +198,13 @@ class NullMicroscope(object):
         self.get_magnification_index = index
 
     def get_indicated_camera_length(self):
-        if self._projection_mode == ProjectionMode.IMAGING:
+        if self._projection_mode == ProjectionMode.DIFFRACTION:
             return self._magnification_index * 0.1
         else:
             return 0
 
     def get_indicated_magnification(self):
-        if self._projection_mode == ProjectionMode.DIFFRACTION:
+        if self._projection_mode == ProjectionMode.IMAGING:
             return self._magnification_index * 10000
         else:
             return 0
