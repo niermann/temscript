@@ -25,9 +25,9 @@ class RemoteMicroscope(object):
     :param address: (host, port) combination for the remote microscope.
     :param transport: Underlying transport protocol, either 'JSON' (default) or 'pickle'
     """
-    def __init__(self, address, transport=None):
-        self.host = address[0]
-        self.port = address[1]
+    def __init__(self, address, transport=None, timeout=None):
+        self.address = address
+        self.timeout = timeout
         self._conn = None
         if transport is None:
             transport = "JSON"
@@ -41,7 +41,7 @@ class RemoteMicroscope(object):
     def _request(self, method, endpoint, query={}, body=None, headers={}, accepted_response=[200]):
         # Make connection
         if self._conn is None:
-            self._conn = HTTPConnection(self.host, self.port)
+            self._conn = HTTPConnection(self.address[0], self.address[1], timeout=self.timeout)
 
         # Create request
         if len(query) > 0:
