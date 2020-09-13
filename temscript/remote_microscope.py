@@ -2,6 +2,7 @@
 from __future__ import division, print_function
 import numpy as np
 import json
+import socket
 
 # Get imports from library
 try:
@@ -56,7 +57,13 @@ class RemoteMicroscope(object):
         self._conn.request(method, url, body, headers)
 
         # Get response
-        response = self._conn.getresponse()
+        try:
+            response = self._conn.getresponse()
+        except socket.timeout:
+            self._conn.close()
+            self._conn = None
+            raise
+
         body = response.read()
         if response.status not in accepted_response:
             raise ValueError("Failed remote call: %d, %s" % (response.status, response.reason))
