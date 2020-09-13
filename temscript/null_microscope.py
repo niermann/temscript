@@ -195,7 +195,7 @@ class NullMicroscope(object):
         return self._magnification_index
 
     def set_magnification_index(self, index):
-        self.get_magnification_index = index
+        self._magnification_index = index
 
     def get_indicated_camera_length(self):
         if self._projection_mode == ProjectionMode.DIFFRACTION:
@@ -229,7 +229,7 @@ class NullMicroscope(object):
             "image_shift": self.get_image_shift(),
             "beam_shift": self.get_beam_shift(),
             "beam_tilt": self.get_beam_tilt(),
-            "projection_mode": self.get_projection_mode(),
+            "projection_mode": self.get_projection_mode().name,
             "projection_mode_string": self.get_projection_mode_string(),
             "magnification_index": self.get_magnification_index(),
             "indicated_camera_length": self.get_indicated_camera_length(),
