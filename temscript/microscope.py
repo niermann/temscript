@@ -586,6 +586,31 @@ class Microscope(object):
         """
         return self._tem_projection.ObjectiveExcitation
 
+    def get_intensity(self):
+        """
+        Get intensity settings.
+
+        The returned value is in arbitrary units.
+        Increasing values go into overfocus direction, negative values into underfocus direction.
+
+        .. versionadded:: 1.0.10
+        """
+        return self._tem_illumination.Intensity
+
+    def set_intensity(self, value):
+        """
+        Sets intensity.
+
+        The value is in arbitrary units.
+        Increasing values go into overfocus direction, negative values into underfocus direction.
+
+        :param value: Intensity to set
+        :type value: float
+
+        .. versionadded:: 1.0.10
+        """
+        self._tem_illumination.Intensity = float(value)
+
     def get_optics_state(self):
         """
         Return a dictionary with state of microscope optics.
@@ -608,6 +633,7 @@ class Microscope(object):
             "indicated_camera_length": self.get_indicated_camera_length(),
             "indicated_magnification": self.get_indicated_magnification(),
             "defocus": self.get_defocus(),
+            "intensity": self.get_intensity(),
             "objective_excitation": self.get_objective_excitation()
         }
         return state

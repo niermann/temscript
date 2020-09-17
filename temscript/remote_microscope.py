@@ -251,6 +251,15 @@ class RemoteMicroscope(object):
         response, body = self._request("GET", "/v1/objective_excitation")
         return body
 
+    def get_intensity(self):
+        response, body = self._request("GET", "/v1/intensity")
+        return body
+
+    def set_intensity(self, value):
+        content = json.dumps(value).encode("utf-8")
+        self._request("PUT", "/v1/intensity", body=content, accepted_response=[200, 204],
+                      headers={"Content-Type": "application/json"})
+
     def get_optics_state(self):
         response, body = self._request("GET", "/v1/optics_state")
         return body
