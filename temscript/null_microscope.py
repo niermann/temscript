@@ -43,6 +43,7 @@ class NullMicroscope(object):
         self._projection_mode = ProjectionMode.IMAGING
         self._magnification_index = 10
         self._defocus = 0.0
+        self._intensity = 0.0
 
     def get_family(self):
         return "NULL"
@@ -217,6 +218,12 @@ class NullMicroscope(object):
 
     def get_objective_excitation(self):
         return self._defocus
+
+    def get_intensity(self):
+        return self._intensity
+
+    def set_intensity(self, value):
+        self._intensity = float(value)
 
     def get_optics_state(self):
         state = {
