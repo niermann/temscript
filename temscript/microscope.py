@@ -633,7 +633,7 @@ class Microscope(object):
             "indicated_camera_length": self.get_indicated_camera_length(),
             "indicated_magnification": self.get_indicated_magnification(),
             "defocus": self.get_defocus(),
-            "objective_excitation": self.get_objective_excitation()
+            "objective_excitation": self.get_objective_excitation(),
             "intensity": self.get_intensity(),
         }
         return state
