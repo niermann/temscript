@@ -140,10 +140,14 @@ class Microscope(object):
         """
         return self._tem_stage.Position
 
-    def set_stage_position(self, pos, method="GO"):
+    def set_stage_position(self, pos=None, method="GO", **kw):
         """
-        Set new stage position. The new position is passed as dict.
-        Only the axes are driven which are mentioned in the `pos` dict.
+        Set new stage position.
+
+        The new position can either be passed as dict `pos` or passed by keywords
+        `x`, `y`, `z`, `a`, `b`. If both are present, the keywords override values from the dict.
+        Only the axes are driven which are mentioned in the `pos` dict or by keywords.
+
         For axes "x", "y", "z" the unit is meters.
         For axes "a", "b" the unit is radians.
 
@@ -152,6 +156,7 @@ class Microscope(object):
             * "GO": Moves directly to new stage position
             * "MOVE": Avoids pole piece touches, by first zeroing the angle, moving the stage than, and setting the angles again.
         """
+        pos = dict(pos, **kw) if pos is not None else dict(**kw)
         if method == "GO":
             self._tem_stage.GoTo(**pos)
         elif method == "MOVE":

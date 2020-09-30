@@ -85,7 +85,8 @@ class NullMicroscope(object):
     def get_stage_position(self):
         return dict(self._stage_pos)
 
-    def set_stage_position(self, pos, method="GO"):
+    def set_stage_position(self, pos=None, method="GO", **kw):
+        pos = dict(pos, **kw) if pos is not None else dict(**kw)
         if method not in ["GO", "MOVE"]:
             raise ValueError("Unknown movement methods.")
         limit = self.get_stage_limits()

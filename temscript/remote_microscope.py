@@ -118,8 +118,8 @@ class RemoteMicroscope(object):
         response, body = self._request("GET", "/v1/stage_position")
         return body
 
-    def set_stage_position(self, pos, method=None):
-        pos = dict(pos)
+    def set_stage_position(self, pos=None, method=None, **kw):
+        pos = dict(pos, **kw) if pos is not None else dict(**kw)
         if method is not None:
             pos["method"] = method
         elif "method" in pos:
