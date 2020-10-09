@@ -126,6 +126,8 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             response = self.server.microscope.get_beam_shift()
         elif endpoint == "beam_tilt":
             response = self.server.microscope.get_beam_tilt()
+        elif endpoint == "projection_sub_mode":
+            response = self.server.microscope.get_projection_sub_mode()
         elif endpoint == "projection_mode":
             response = self.server.microscope.get_projection_mode()
         elif endpoint == "projection_mode_string":

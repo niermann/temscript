@@ -487,6 +487,14 @@ class Microscope(object):
         else:
             raise ValueError("Unknown normalization mode: %s" % mode)
 
+    def get_projection_sub_mode(self):
+        """
+        Return current projection sub mode.
+
+        .. versionadded:: 1.0.10
+        """
+        return ProjectionSubMode(self._tem_projection.SubMode).name
+
     def get_projection_mode(self):
         """
         Return current projection mode.
