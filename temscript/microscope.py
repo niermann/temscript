@@ -640,6 +640,7 @@ class Microscope(object):
             "image_shift": self.get_image_shift(),
             "beam_shift": self.get_beam_shift(),
             "beam_tilt": self.get_beam_tilt(),
+            "projection_sub_mode": self.get_projection_sub_mode(),
             "projection_mode": self.get_projection_mode(),
             "projection_mode_string": self.get_projection_mode_string(),
             "magnification_index": self.get_magnification_index(),

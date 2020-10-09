@@ -40,6 +40,7 @@ class NullMicroscope(object):
         self._image_shift = np.zeros(2, dtype=float)
         self._beam_shift = np.zeros(2, dtype=float)
         self._beam_tilt = np.zeros(2, dtype=float)
+        self._projection_sub_mode = ProjectionSubMode.SA
         self._projection_mode = ProjectionMode.IMAGING
         self._magnification_index = 10
         self._defocus = 0.0
@@ -183,6 +184,9 @@ class NullMicroscope(object):
         if mode.upper() not in KNOWN_MODES:
             raise ValueError("Unknown normalization mode: %s" % mode)
 
+    def get_projection_sub_mode(self):
+        return ProjectionSubMode(self._projection_sub_mode)
+
     def get_projection_mode(self):
         return ProjectionMode(self._projection_mode)
 
@@ -237,6 +241,7 @@ class NullMicroscope(object):
             "image_shift": self.get_image_shift(),
             "beam_shift": self.get_beam_shift(),
             "beam_tilt": self.get_beam_tilt(),
+            "projection_sub_mode": self.get_projection_sub_mode().name,
             "projection_mode": self.get_projection_mode().name,
             "projection_mode_string": self.get_projection_mode_string(),
             "magnification_index": self.get_magnification_index(),
