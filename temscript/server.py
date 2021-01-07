@@ -144,6 +144,12 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             response = self.server.microscope.get_objective_excitation()
         elif endpoint == "intensity":
             response = self.server.microscope.get_intensity()
+        elif endpoint == "objective_stigmator":
+            response = self.server.microscope.get_objective_stigmator()
+        elif endpoint == "condenser_stigmator":
+            response = self.server.microscope.get_condenser_stigmator()
+        elif endpoint == "diffraction_shift":
+            response = self.server.microscope.get_diffraction_shift()
         elif endpoint == "optics_state":
             response = self.server.microscope.get_optics_state()
         elif endpoint.startswith("detector_param/"):
@@ -194,6 +200,12 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             self.server.microscope.set_defocus(decoded_content)
         elif endpoint == "intensity":
             self.server.microscope.set_intensity(decoded_content)
+        elif endpoint == "diffraction_shift":
+            self.server.microscope.set_diffraction_shift(decoded_content)
+        elif endpoint == "objective_stigmator":
+            self.server.microscope.set_objective_stigmator(decoded_content)
+        elif endpoint == "condenser_stigmator":
+            self.server.microscope.set_condenser_stigmator(decoded_content)
         elif endpoint.startswith("detector_param/"):
             try:
                 name = endpoint[15:]

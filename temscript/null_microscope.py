@@ -230,6 +230,27 @@ class NullMicroscope(object):
     def set_intensity(self, value):
         self._intensity = float(value)
 
+    def set_objective_stigmator(self, value):
+        value = np.atleast_1d(value)
+        self._objective_stigmator[...] = value
+
+    def get_objective_stigmator(self):
+        return tuple(self._objective_stigmator)
+
+    def set_condenser_stigmator(self, value):
+        value = np.atleast_1d(value)
+        self._condenser_stigmator[...] = value
+
+    def get_condenser_stigmator(self):
+        return tuple(self._condenser_stigmator)
+
+    def set_diffraction_shift(self, value):
+        value = np.atleast_1d(value)
+        self._diffraction_shift[...] = value
+
+    def get_diffraction_shift(self):
+        return tuple(self._diffraction_shift)
+
     def get_optics_state(self):
         state = {
             "family": self.get_family(),
@@ -249,6 +270,9 @@ class NullMicroscope(object):
             "indicated_magnification": self.get_indicated_magnification(),
             "defocus": self.get_defocus(),
             "intensity": self.get_intensity(),
-            "objective_excitation": self.get_objective_excitation()
+            "objective_excitation": self.get_objective_excitation(),
+            "condenser_stigmator": self.get_condenser_stigmator(),
+            "objective_stigmator": self.get_objective_stigmator(),
+            "diffraction_shift": self.get_diffraction_shift(),
         }
         return state

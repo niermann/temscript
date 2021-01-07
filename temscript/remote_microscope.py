@@ -264,6 +264,33 @@ class RemoteMicroscope(object):
         self._request("PUT", "/v1/intensity", body=content, accepted_response=[200, 204],
                       headers={"Content-Type": "application/json"})
 
+    def get_condenser_stigmator(self):
+        response, body = self._request("GET", "/v1/condenser_stigmator")
+        return body
+
+    def set_condenser_stigmator(self, value):
+        content = json.dumps(tuple(value)).encode("utf-8")
+        self._request("PUT", "/v1/condenser_stigmator", body=content, accepted_response=[200, 204],
+                      headers={"Content-Type": "application/json"})
+
+    def get_objective_stigmator(self):
+        response, body = self._request("GET", "/v1/objective_stigmator")
+        return body
+
+    def set_objective_stigmator(self, value):
+        content = json.dumps(tuple(value)).encode("utf-8")
+        self._request("PUT", "/v1/objective_stigmator", body=content, accepted_response=[200, 204],
+                      headers={"Content-Type": "application/json"})
+
+    def get_diffraction_shift(self):
+        response, body = self._request("GET", "/v1/diffraction_shift")
+        return body
+
+    def set_diffraction_shift(self, value):
+        content = json.dumps(tuple(value)).encode("utf-8")
+        self._request("PUT", "/v1/diffraction_shift", body=content, accepted_response=[200, 204],
+                      headers={"Content-Type": "application/json"})
+
     def get_optics_state(self):
         response, body = self._request("GET", "/v1/optics_state")
         return body

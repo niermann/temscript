@@ -403,7 +403,7 @@ class Microscope(object):
 
     def set_beam_shift(self, pos):
         """
-        Set beam shift to position `pos`, which should be an (x, y) tuple, as returned for instance by :meth:`get_image_shift`.
+        Set beam shift to position `pos`, which should be an (x, y) tuple, as returned for instance by :meth:`get_beam_shift`.
         """
         self._tem_illumination.Shift = pos
 
@@ -427,7 +427,7 @@ class Microscope(object):
             
     def set_beam_tilt(self, tilt):
         """
-        Set beam tilt to position `tilt`, which should be an (x, y) tuple, as returned for instance by :meth:`get_image_shift`.
+        Set beam tilt to position `tilt`, which should be an (x, y) tuple, as returned for instance by :meth:`get_beam_tilt`.
         
         On FEI microscopes:
         * this will turn on dark field mode, unless (0, 0) is set, which will also turn off the dark field mode.
@@ -624,6 +624,60 @@ class Microscope(object):
         """
         self._tem_illumination.Intensity = float(value)
 
+    def set_objective_stigmator(self, value):
+        """
+        Set objective stigmator.
+
+        :param value: (x, y) tuple, as returned for instance by :meth:`get_objective_stigmator`.
+
+        .. versionadded:: 1.0.10
+        """
+        self._tem_projection.ObjectiveStigmator = value
+
+    def get_objective_stigmator(self):
+        """
+        Value of objective stigmator.
+
+        .. versionadded:: 1.0.10
+        """
+        return self._tem_projection.ObjectiveStigmator
+
+    def set_condenser_stigmator(self, value):
+        """
+        Set condenser stigmator.
+
+        :param value: (x, y) tuple, as returned for instance by :meth:`get_condenser_stigmator`.
+
+        .. versionadded:: 1.0.10
+        """
+        self._tem_illumination.CondenserStigmator = value
+
+    def get_condenser_stigmator(self):
+        """
+        Value of condenser stigmator.
+
+        .. versionadded:: 1.0.10
+        """
+        return self._tem_illumination.CondenserStigmator
+
+    def set_diffraction_shift(self, value):
+        """
+        Set diffraction shift.
+
+        :param value: (x, y) tuple, as returned for instance by :meth:`get_diffraction_shift`.
+
+        .. versionadded:: 1.0.10
+        """
+        self._tem_projection.DiffractionShift = value
+
+    def get_diffraction_shift(self):
+        """
+        Value of diffraction shift
+
+        .. versionadded:: 1.0.10
+        """
+        return self._tem_projection.DiffractionShift
+
     def get_optics_state(self):
         """
         Return a dictionary with state of microscope optics.
@@ -649,5 +703,8 @@ class Microscope(object):
             "defocus": self.get_defocus(),
             "objective_excitation": self.get_objective_excitation(),
             "intensity": self.get_intensity(),
+            "condenser_stigmator": self.get_condenser_stigmator(),
+            "objective_stigmator": self.get_objective_stigmator(),
+            "diffraction_shift": self.get_diffraction_shift(),
         }
         return state
