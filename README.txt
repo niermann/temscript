@@ -14,6 +14,10 @@ slow for for 2Kx2K images. I never got it to work using the comtypes package.
 Thus I decided to write the wrapper on my own, which then will return 
 SafeArrays as numpy ndarray objects.
 
+Over the years the scripting adapter got more and more features. However,
+with the client/server interface the original design becomes more and more
+troublesome. In principle the whole interface needs a redesign...
+
 -- Building -------------------------------------------------------
 
 Requirements:
