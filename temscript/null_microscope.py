@@ -40,6 +40,9 @@ class NullMicroscope(object):
         self._image_shift = np.zeros(2, dtype=float)
         self._beam_shift = np.zeros(2, dtype=float)
         self._beam_tilt = np.zeros(2, dtype=float)
+        self._condenser_stigmator = np.zeros(2, dtype=float)
+        self._objective_stigmator = np.zeros(2, dtype=float)
+        self._diffraction_shift = np.zeros(2, dtype=float)
         self._projection_sub_mode = ProjectionSubMode.SA
         self._projection_mode = ProjectionMode.IMAGING
         self._magnification_index = 10
