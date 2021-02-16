@@ -45,7 +45,7 @@ PyObject* arrayFromSafeArray(SAFEARRAY* arr)
             return NULL;
         }   
 
-        if (upper <= lower) {
+        if (upper < lower) {    // Bounds are inclusive
             delete[] dims;
             PyErr_Format(PyExc_RuntimeError, "Expected array bounds of dim %d to be lower < upper: lower=%d, upper=%d.", i, lower, upper);
             return NULL;
