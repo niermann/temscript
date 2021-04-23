@@ -414,6 +414,9 @@ The classical interface
         speed of the movement. 1.0 correspond to the default speed. (internally the ``GoToWithSpeed`` method is used,
         if speed is not 1.0).
 
+        .. versionchanged:: 1.0.10
+            "speed" keyword added.
+
     .. method:: MoveTo(x=None, y=None, z=None, a=None, b=None)
 
         Moves stage to indicated position. Stage is only moved along

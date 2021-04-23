@@ -158,6 +158,9 @@ class Microscope(object):
 
             * "GO": Moves directly to new stage position
             * "MOVE": Avoids pole piece touches, by first zeroing the angle, moving the stage than, and setting the angles again.
+
+        .. versionchanged:: 1.0.10
+            "speed" keyword added.
         """
         pos = dict(pos, **kw) if pos is not None else dict(**kw)
         if method == "GO":
