@@ -85,20 +85,27 @@ static int getFloat(PyObject* obj, double& value)
     return 1;
 }
 
-static bool parsePosition(PyObject* args, PyObject* kw, TEMScripting::StagePosition* position, unsigned& axes)
+/**
+ * Parse stage position dictionary into StagePosition instance.
+ * On return a bitmap with set axes is returned in *axes*.
+ * If *speed* is non-NULL and a float-value for "speed" is set in *kw*, *speed* is uptdated to the new value.
+ * Return: true, on success
+ */
+static bool parsePosition(PyObject* args, PyObject* kw, TEMScripting::StagePosition* position, unsigned& axes, double* speed=NULL)
 {
     PyObject* xObj = NULL;
     PyObject* yObj = NULL;
     PyObject* zObj = NULL;
     PyObject* aObj = NULL;
     PyObject* bObj = NULL;
+	PyObject* speedObj = NULL;
     
-    static const char* kwlist[] = { "x", "y", "z", "a", "b", NULL };
+    static const char* kwlist[] = { "x", "y", "z", "a", "b", "speed", NULL };
 
     double  value;
     int     test;
     
-    if (!PyArg_ParseTupleAndKeywords(args, kw, "|OOOOO", (char**)kwlist, &xObj, &yObj, &zObj, &aObj, &bObj))
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "|OOOOOO", (char**)kwlist, &xObj, &yObj, &zObj, &aObj, &bObj, &speedObj))
         return false;
         
     axes = 0;
@@ -158,12 +165,21 @@ static bool parsePosition(PyObject* args, PyObject* kw, TEMScripting::StagePosit
     } else if (test < 0)
         return false;
 
+	if (speed) {
+		test = getFloat(speedObj, value);
+		if (test > 0)
+			*speed = value;
+		else if (test < 0)
+			return false;
+	}
+
     return true;
 }
 
 static PyObject* Stage_GoTo(Stage *self, PyObject* args, PyObject* kw)
 {
     unsigned axes = 0;
+	double speed = 1.0;
     
     TEMScripting::StagePosition* position;
     HRESULT result = self->iface->get_Position(&position);
@@ -172,20 +188,24 @@ static PyObject* Stage_GoTo(Stage *self, PyObject* args, PyObject* kw)
         return NULL;
     }
     
-    if (!parsePosition(args, kw, position, axes)) {
+    if (!parsePosition(args, kw, position, axes, &speed)) {
         position->Release();
         return NULL;
     }
 
     if (axes) {
-        result = self->iface->raw_Goto(position, (TEMScripting::StageAxes)axes);
-        position->Release();
+		if (speed != 1.0)
+			result = self->iface->raw_GotoWithSpeed(position, (TEMScripting::StageAxes)axes, speed);
+		else
+			result = self->iface->raw_Goto(position, (TEMScripting::StageAxes)axes);
         if (FAILED(result)) {
+		    position->Release();
             raiseComError(result);
             return NULL;
         }
     }
 
+    position->Release();
     Py_RETURN_NONE;
 }
 
@@ -207,13 +227,14 @@ static PyObject* Stage_MoveTo(Stage *self, PyObject* args, PyObject* kw)
 
     if (axes) {
         result = self->iface->raw_MoveTo(position, (TEMScripting::StageAxes)axes);
-        position->Release();
         if (FAILED(result)) {
+			position->Release();
             raiseComError(result);
             return NULL;
         }
     }
 
+    position->Release();
     Py_RETURN_NONE;
 }
 
