@@ -185,6 +185,10 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
         if endpoint == "stage_position":
             method = decoded_content.get("method", "GO")
             pos = dict((k, decoded_content[k]) for k in decoded_content.keys() if k in STAGE_AXES)
+            try:
+                pos['speed'] = decoded_content['speed']
+            except KeyError:
+                pass
             self.server.microscope.set_stage_position(pos, method=method)
         elif endpoint == "image_shift":
             self.server.microscope.set_image_shift(decoded_content)

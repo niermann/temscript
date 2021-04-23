@@ -405,10 +405,14 @@ The classical interface
         'radians'). The *axis* must be of string type and contain
         either 'x', 'y', 'z', 'a', or 'b'.
 
-    .. method:: GoTo(x=None, y=None, z=None, a=None, b=None)
+    .. method:: GoTo(x=None, y=None, z=None, a=None, b=None, speed=1.0)
 
         Moves stage to indicated position. Stage is only moved along
         the axes that are not ``None``.
+
+        Optionally the keyword 'speed' can be given, which allows to set the
+        speed of the movement. 1.0 correspond to the default speed. (internally the ``GoToWithSpeed`` method is used,
+        if speed is not 1.0).
 
     .. method:: MoveTo(x=None, y=None, z=None, a=None, b=None)
 

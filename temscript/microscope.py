@@ -148,6 +148,9 @@ class Microscope(object):
         `x`, `y`, `z`, `a`, `b`. If both are present, the keywords override values from the dict.
         Only the axes are driven which are mentioned in the `pos` dict or by keywords.
 
+        The optional keyword "speed" allows to set movement speed (only "GO" method). A speed of 1.0 corresponds
+        to default speed.
+
         For axes "x", "y", "z" the unit is meters.
         For axes "a", "b" the unit is radians.
 
