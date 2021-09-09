@@ -45,7 +45,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'temscript'
-copyright = u'2012-2017, Tore Niermann'
+copyright = u'2012-2021, Tore Niermann'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
