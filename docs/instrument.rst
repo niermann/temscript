@@ -1,21 +1,17 @@
-The classical interface
-=======================
+The COM interface
+=================
 
 .. module:: temscript
+
+The methods and classes directly represent the COM objects exposed by the *Scripting* interface.
 
 .. function:: GetInstrument()
 
     Creates a new instance of the :class:`Instrument` class. If your computer
     is not the microscope's PC or you don't have the *Scripting* option installed on
-    your microscope, this method will raise an exception (most likely of the :exc:`COMError`
+    your microscope, this method will raise an exception (most likely of the :exc:`OSError`
     type).
 
-.. exception:: COMError
-
-    Exceptions of this type are raised, when something with COM libary or the communication
-    with the microscope server failed. The value of the exception consists of a
-    tuple containing the error code and a textual representation of the error (most likely
-    just something like "HRESULT=0xXXXXXXXX").
 
 :class:`Instrument` - The entry point...
 ----------------------------------------
@@ -68,6 +64,7 @@ The classical interface
 
         (read/write) *bool* Enable/Disable autonormalization procedures
 
+
 :class:`Gun` - Gun stuff
 ------------------------
 
@@ -102,6 +99,7 @@ The classical interface
 
         (read) *float* Max. HT Value of the microscope (Volts)
 
+
 :class:`Illumination` - Condenser sytem
 ---------------------------------------
 
@@ -135,20 +133,21 @@ The classical interface
     .. attribute:: CondenserStigmator
 
         (read/write) (X,Y) tuple in the range of -1.0 to +1.0 (logical units).
-    .. attribute: SpotsizeIndex
 
-        (read/write) *long* The spot size (1-11).
+    .. attribute:: SpotsizeIndex
 
-    .. attribute: Intensity
+        (read/write) *int* The spot size (1-11).
+
+    .. attribute:: Intensity
 
         (read/write) *float* Value corresponding to the C2-Knob setting, range
         between 0.0 to 1.0 (logical units)
 
-    .. attribute: IntensityZoomEnabled
+    .. attribute:: IntensityZoomEnabled
 
         (read/write) *bool* Enable intensity zoom
 
-    .. attribute:
+    .. attribute::
 
         (read/write) *bool* Enable Intensity limit
 
@@ -219,39 +218,39 @@ The classical interface
             * ``nmObjectivePole``
             * ``nmAll``
 
-:class:`Projection` - Projective sytem
+
+:class:`Projection` - Projective system
 ---------------------------------------
 
 .. class:: Projection
 
     Depending on the mode the microscope is in not all properties are
-    accessable at all times (see manual for details).
+    accessable at all times (see scripting manual for details).
 
     .. attribute:: Mode
 
-        (read/write) One of
-            * ``pmImaging``
-            * ``pmDiffraction``
+        (read/write) *ProjectionMode* Mode
+
+        .. versionchanged:: 2.0
+            Returns *ProjectionMode* instance instead of integer.
 
     .. attribute:: SubMode
 
-        (read) One of
-            * ``psmLM``
-            * ``psmMi``
-            * ``psmSA``
-            * ``psmMh``
-            * ``psmLAD``
-            * ``psmD``
+        (read) *ProjectionSubMode* SubMode
+
+        .. versionchanged:: 2.0
+            Returns *ProjectionSubMode* instance instead of integer.
 
     .. attribute:: SubModeString
 
-        (read) *unicode* Textual description of :attr:`Submode`.
+        (read) *str* Textual description of :attr:`Submode`.
 
     .. attribute:: LensProgram
 
-        (read/write) One of
-            * ``lpRegular``
-            * ``lpEFTEM``
+        (read/write) *LensProg* Lens program
+
+        .. versionchanged:: 2.0
+            Returns *LensProg* instance instead of integer.
 
     .. attribute:: Magnification
 
@@ -260,7 +259,7 @@ The classical interface
 
     .. attribute:: MagnificationIndex
 
-        (read/write) *long* Magnification setting
+        (read/write) *int* Magnification setting
 
     .. attribute:: ImageRotation
 
@@ -269,17 +268,17 @@ The classical interface
 
     .. attribute:: DetectorShift
 
-        (read/write) Move image/diffraction pattern to detector. One of
-            * ``pdsOnAxis``
-            * ``pdsNearAxis``
-            * ``pdsOffAxis``
+        (read/write) *ProjectionDetectorShift* Set shift of diffraction pattern to specified axis.
+
+        .. versionchanged:: 2.0
+            Returns *ProjectionDetectorShift* instance instead of integer.
 
     .. attribute:: DetectorShiftMode
 
-        (read/write) One of
-            * ``pdsmAutoIgnore``
-            * ``pdsmManual``
-            * ``pdsmAlignment``
+        (read/write) *ProjDetectorShiftMode* Shift mode
+
+        .. versionchanged:: 2.0
+            Returns *ProjDetectorShiftMode* instance instead of integer.
 
     .. attribute:: Focus
 
@@ -301,7 +300,7 @@ The classical interface
 
     .. attribute:: CameraLengthIndex
 
-        (read/write) *long* Camera length setting
+        (read/write) *int* Camera length setting
 
     .. attribute:: ObjectiveStigmator
 
@@ -339,16 +338,16 @@ The classical interface
 
     .. attribute:: ProjectionIndex
 
-        (read/write) *long* Corresponts to :attr:`MagnificationIndex` or
+        (read/write) *int* Corresponds to :attr:`MagnificationIndex` or
         :attr:`CameraLengthIndex` depending on mode.
 
     .. attribute:: SubModeMinIndex
 
-        (read) *long* Smallest projection index of current submode.
+        (read) *int* Smallest projection index of current submode.
 
     .. attribute:: SubModeMaxIndex
 
-        (read) *long* Largest projection index of current submode.
+        (read) *int* Largest projection index of current submode.
 
     .. method:: ResetDefocus()
 
@@ -361,10 +360,8 @@ The classical interface
 
     .. method:: Normalize(norm)
 
-        Normalize projection system. *norm* is one of
-            * ``pnmObjective``
-            * ``pnmProjector``
-            * ``pnmAll``
+        Normalize projection system. *norm* specifies what elements to normalize, see *ProjectionNormalization*
+
 
 :class:`Stage` - Stage control
 ------------------------------
@@ -424,6 +421,7 @@ The classical interface
         touch, the movement is carried out in the following order:
 
             b->0; a->0; z->Z; (x,y)->(X,Y); a->A; b->B
+
 
 Vacuum related classes
 ----------------------
@@ -489,6 +487,7 @@ Vacuum related classes
         Read the pressure level. Call this before reading the value
         from :attr:`Pressure`.
 
+
 Acquisition related classes
 ---------------------------
 
@@ -511,6 +510,19 @@ Acquisition related classes
     .. attribute:: Detectors
 
         (read) List of :class:`STEMDetector` objects.
+
+    .. attribute:: StemAcqParams
+
+        (read/write) *STEMAcqParams* Acquisition parameters for STEM acquisition.
+
+        In the original Scripting interface the STEM acquisition parameters are
+        read/write on the detectors collection returned by the *Detectors* attribute.
+        obtained via the list of detectors returned by the Acquisition instance.
+
+        In version 1.X of the temscript adapter, this parameters were set via the STEMDetector
+        instances itself, however the setting was common to all detectors.
+
+        .. versionadded:: 2.0
 
     .. method:: AddAcqDevice(device)
 
@@ -539,6 +551,7 @@ Acquisition related classes
         Acquires image from each active device, and returns them as list
         of :class:`AcqImage`.
 
+
 .. class:: CCDCamera
 
     .. attribute:: Info
@@ -549,19 +562,20 @@ Acquisition related classes
 
         Acquisition parameters of the camera as instance of :class:`CCDAcqParams`
 
+
 .. class:: CCDCameraInfo
 
     .. attribute:: Name
 
-        (read) *unicode* Name of CCD camera
+        (read) *str* Name of CCD camera
 
     .. attribute:: Height
 
-        (read) *long* Height of camera (pixels)
+        (read) *int* Height of camera (pixels)
 
     .. attribute:: Width
 
-        (read) *long* Width of camera (pixels)
+        (read) *int* Width of camera (pixels)
 
     .. attribute:: PixelSize
 
@@ -569,28 +583,34 @@ Acquisition related classes
 
     .. attribute:: Binnings
 
-        (read) *numpy.ndarray* with supported binning values.
+        (read) List with supported binning values.
+
+        .. versionchanged:: 2.0
+            This attribute now returns a list of int (instead of a numpy array).
 
     .. attribute:: ShutterModes
 
-        (read) *numpy.ndarray* with supported shutter modes.
-        See :attr:`ShutterMode` for possible values.
+        (read) List with supported shutter modes (see *AcqShutterMode* enumeration).
+
+        .. versionchanged:: 2.0
+            This attribute now returns a list of AcqShutterMode (instead of a numpy array).
 
     .. attribute:: ShutterMode
 
-        (read/write) One of
-            * ``AcqShutterMode_PreSpecimen``
-            * ``AcqShutterMode_PostSpecimen``
-            * ``AcqShutterMode_Both``
+        (read/write) *AcqShutterMode* Selected shutter mode.
+
+        .. versionchanged:: 2.0
+            Returns *AcqShutterMode* instance instead of integer.
+
 
 .. class:: CCDAcqParams
 
     .. attribute:: ImageSize
 
-        (read/write) One of
-            * ``AcqImageSize_Full``
-            * ``AcqImageSize_Half``
-            * ``AcqImageSize_Quarter``
+        (read/write) *AcqImageSize* Camera area used.
+
+        .. versionchanged:: 2.0
+            Returns *AcqImageSize* instance instead of integer.
 
     .. attribute:: ExposureTime
 
@@ -598,21 +618,21 @@ Acquisition related classes
 
     .. attribute:: Binning
 
-        (read/write) *long* Binning value
+        (read/write) *int* Binning value
 
     .. attribute:: ImageCorrection
 
-        (read/write) One of
-            * ``AcqImageCorrection_Unprocessed``
-            * ``AcqImageCorrection_Default``
+        (read/write) *AcqImageCorrection* Correction mode.
+
+        .. versionchanged:: 2.0
+            Returns *AcqImageCorrection* instance instead of integer.
 
     .. attribute:: ExposureMode
 
-        (read/write) One of
-            * ``AcqExposureMode_None``
-            * ``AcqExposureMode_Simultaneous``
-            * ``AcqExposureMode_PreExposure``
-            * ``AcqExposureMode_PreExposurePause``
+        (read/write) *AcqExposureMode* Exposure mode.
+
+        .. versionchanged:: 2.0
+            Returns *AcqExposureMode* instance instead of integer.
 
     .. attribute:: MinPreExposureTime
 
@@ -638,6 +658,7 @@ Acquisition related classes
 
         (read/write) *float* pre exposure pause time (seconds)
 
+
 .. class:: STEMDetector
 
     .. attribute:: Info
@@ -646,20 +667,21 @@ Acquisition related classes
 
     .. attribute:: AcqParams
 
-        Acquisition parameters of the detector as instance of :class:`STEMAcqParams`. The
+        Parameters for STEM acquisition as instance of :class:`STEMAcqParams`. The
         acquisition parameters of all STEM detectors are identical, so this attribute
         will return the same instance for all detectors.
 
-        In the original Scripting interface the instance of the STEM acquisition parameters is
-        obtained via the list of detectors returned by the Acquisition instance. In the temscript
-        python interface, the parameter instance is obtained via the STEMDetector instances.
-        However all detectors will haul the same parameter object.
+        .. deprecated:: 2.0
+
+            Use the :attr:`StemAcqParams` attribute of the :class:`Acquisition` to set the parameters
+            for STEM acqisition.
+
 
 .. class:: STEMDetectorInfo
 
     .. attribute:: Name
 
-        (read) *unicode* Name of detector camera
+        (read) *str* Name of detector camera
 
     .. attribute:: Brightness
 
@@ -671,16 +693,20 @@ Acquisition related classes
 
     .. attribute:: Binnings
 
-        (read) *numpy.ndarray* with supported binning values.
+        (read) List with supported binning values.
+
+        .. versionchanged:: 2.0
+            This attribute now returns a list of int (instead of a numpy array).
+
 
 .. class:: STEMAcqParams
 
     .. attribute:: ImageSize
 
-        (read/write) One of
-            * ``AcqImageSize_Full``
-            * ``AcqImageSize_Half``
-            * ``AcqImageSize_Quarter``
+        (read/write) *AcqImageSize* Area of scan
+
+        .. versionchanged:: 2.0
+            Returns *AcqImageSize* instance instead of integer.
 
     .. attribute:: DwellTime
 
@@ -688,7 +714,8 @@ Acquisition related classes
 
     .. attribute:: Binning
 
-        (read/write) *long* Binning value
+        (read/write) *int* Binning value
+
 
 .. class:: AcqImage
 
@@ -698,20 +725,21 @@ Acquisition related classes
 
     .. attribute:: Height
 
-        (read) *long* Height of acquired data array (pixels)
+        (read) *int* Height of acquired data array (pixels)
 
     .. attribute:: Width
 
-        (read) *long* Width of acquired data array (pixels)
+        (read) *int* Width of acquired data array (pixels)
 
     .. attribute:: Depth
 
-        (read) *long* Unsure: something like dynamic in bits, but not
+        (read) *int* Unsure: something like dynamic in bits, but not
         correct on our microscope.
 
     .. attribute:: Array
 
-        (read) *numpy.ndarray* Acquired data as array object.
+        (read) *numpy.ndarray* Acquired data as numpy array object.
+
 
 Miscellaneous classes
 ---------------------

@@ -1,18 +1,4 @@
-# Get imports from library
-try:
-    # Python 3.X
-    from enum import IntEnum
-except ImportError:
-    # Python 2.X
-    from enum34 import IntEnum
-
-from . import constants as const
-
-__all__ = ("DetectorType", "VacuumStatus", "GaugeStatus", "GaugePressureLevel", "StageStatus", "StageHolderType",
-           "IlluminationNormalization", "IlluminationMode", "DarkFieldMode", "CondenserMode", "ProjectionNormalization",
-           "ProjectionMode", "ProjectionSubMode", "LensProg", "ProjectionDetectorShift", "ProjDetectorShiftMode",
-           "HighTensionState", "InstrumentMode", "AcqShutterMode", "AcqImageSize", "AcqImageCorrection",
-           "AcqExposureMode", "ProductFamily")
+from enum import IntEnum
 
 
 # Not defined by FEI, but used in server/client
@@ -22,145 +8,146 @@ class DetectorType(IntEnum):
 
 
 class VacuumStatus(IntEnum):
-    UNKNOWN = const.vsUnknown
-    OFF = const.vsOff
-    CAMERA_AIR = const.vsCameraAir
-    BUSY = const.vsBusy
-    READY = const.vsReady
-    ELSE = const.vsElse
+    UNKNOWN = 1
+    OFF = 2
+    CAMERA_AIR = 3
+    BUSY = 4
+    READY = 5
+    ELSE = 6
 
 
 class GaugeStatus(IntEnum):
-    UNDEFINED = const.gsUndefined
-    UNDERFLOW = const.gsUnderflow
-    OVERFLOW = const.gsOverflow
-    INVALID = const.gsInvalid
-    VALID = const.gsValid
+    UNDEFINED = 0
+    UNDERFLOW = 1
+    OVERFLOW = 2
+    INVALID = 3
+    VALID = 4
 
 
 class GaugePressureLevel(IntEnum):
-    UNDEFINED = const.plGaugePressurelevelUndefined
-    LOW = const.plGaugePressurelevelLow
-    LOW_MEDIUM = const.plGaugePressurelevelLowMedium
-    MEDIUM_HIGH = const.plGaugePressurelevelMediumHigh
-    HIGH = const.plGaugePressurelevelHigh
+    UNDEFINED = 0
+    LOW = 1
+    LOW_MEDIUM = 2
+    MEDIUM_HIGH = 3
+    HIGH = 4
 
 
 class StageStatus(IntEnum):
-    READY = const.stReady
-    DISABLE = const.stDisabled
-    NOT_READY = const.stNotReady
-    GOING = const.stGoing
-    MOVING = const.stMoving
-    WOBBLING = const.stWobbling
+    READY = 0
+    DISABLED = 1
+    NOT_READY = 2
+    GOING = 3
+    MOVING = 4
+    WOBBLING = 5
+    DISABLE = 1         # Misnaming in temscript 1.X
 
 
 class StageHolderType(IntEnum):
-    NONE = const.hoNone
-    SINGLE_TILT = const.hoSingleTilt
-    DOUBLE_TILT = const.hoDoubleTilt
-    INVALID = const.hoInvalid
-    POLARA = const.hoPolara
-    DUAL_AXIS = const.hoDualAxis
+    NONE = 0
+    SINGLE_TILT = 1
+    DOUBLE_TILT = 2
+    INVALID = 4
+    POLARA = 5
+    DUAL_AXIS = 6
 
 
 class IlluminationNormalization(IntEnum):
-    SPOTSIZE = const.nmSpotsize
-    INTENSITY = const.nmIntensity
-    CONDENSER = const.nmCondenser
-    MINI_CONDENSER = const.nmMiniCondenser
-    OBJECTIVE = const.nmObjectivePole
-    ALL = const.nmAll
+    SPOTSIZE = 1
+    INTENSITY = 2
+    CONDENSER = 3
+    MINI_CONDENSER = 4
+    OBJECTIVE = 5
+    ALL = 6
 
 
 class IlluminationMode(IntEnum):
-    NANOPROBE = const.imNanoProbe
-    MICROPROBE = const.imMicroProbe
+    NANOPROBE = 0
+    MICROPROBE = 1
 
 
 class DarkFieldMode(IntEnum):
-    OFF = const.dfOff
-    CARTESIAN = const.dfCartesian
-    CONICAL = const.dfConical
+    OFF = 1
+    CARTESIAN = 2
+    CONICAL = 3
 
 
 class CondenserMode(IntEnum):
-    PARALLEL = const.cmParallelIllumination
-    PROBE = const.cmProbeIllumination
+    PARALLEL = 0
+    PROBE = 1
 
 
 class ProjectionNormalization(IntEnum):
-    OBJECTIVE = const.pnmObjective
-    PROJECTOR = const.pnmProjector
-    ALL = const.pnmAll
+    OBJECTIVE = 10
+    PROJECTOR = 11
+    ALL = 12
 
 
 class ProjectionMode(IntEnum):
-    IMAGING = const.pmImaging
-    DIFFRACTION = const.pmDiffraction
+    IMAGING = 1
+    DIFFRACTION = 2
 
 
 class ProjectionSubMode(IntEnum):
-    LM = const.psmLM
-    M = const.psmMi
-    SA = const.psmSA
-    MH = const.psmMh
-    LAD = const.psmLAD
-    D = const.psmD
+    LM = 1
+    M = 2
+    SA = 3
+    MH = 4
+    LAD = 5
+    D = 6
 
 
 class LensProg(IntEnum):
-    REGULAR = const.lpRegular
-    EFTEM = const.lpEFTEM
+    REGULAR = 1
+    EFTEM = 2
 
 
 class ProjectionDetectorShift(IntEnum):
-    ON_AXIS = const.pdsOnAxis
-    NEAR_AXIS = const.pdsNearAxis
-    OFF_AXIS = const.pdsOffAxis
+    ON_AXIS = 0
+    NEAR_AXIS = 1
+    OFF_AXIS = 2
 
 
 class ProjDetectorShiftMode(IntEnum):
-    AUTO_IGNORE = const.pdsmAutoIgnore
-    MANUAL = const.pdsmManual
-    ALIGNMENT = const.pdsmAlignment
+    AUTO_IGNORE = 1
+    MANUAL = 2
+    ALIGNMENT = 3
 
 
 class HighTensionState(IntEnum):
-    DISABLED = const.htDisabled
-    OFF = const.htOff
-    ON = const.htOn
+    DISABLED = 1
+    OFF = 2
+    ON = 3
 
 
 class InstrumentMode(IntEnum):
-    TEM = const.InstrumentMode_TEM
-    STEM = const.InstrumentMode_STEM
+    TEM = 0
+    STEM = 1
 
 
 class AcqShutterMode(IntEnum):
-    PRE_SPECIMEN = const.AcqShutterMode_PreSpecimen
-    POST_SPECIMEN = const.AcqShutterMode_PostSpecimen
-    BOTH = const.AcqShutterMode_Both
+    PRE_SPECIMEN = 0
+    POST_SPECIMEN = 1
+    BOTH = 2
 
 
 class AcqImageSize(IntEnum):
-    FULL = const.AcqImageSize_Full
-    HALF = const.AcqImageSize_Half
-    QUARTER = const.AcqImageSize_Quarter
+    FULL = 0
+    HALF = 1
+    QUARTER = 2
 
 
 class AcqImageCorrection(IntEnum):
-    UNPROCESSED = const.AcqImageCorrection_Unprocessed
-    DEFAULT = const.AcqImageCorrection_Default
+    UNPROCESSED = 0
+    DEFAULT = 1
 
 
 class AcqExposureMode(IntEnum):
-    NONE = const.AcqExposureMode_None
-    SIMULTANEOUS = const.AcqExposureMode_Simultaneous
-    PRE_EXPOSURE = const.AcqExposureMode_PreExposure
-    PRE_EXPOSURE_PAUSE = const.AcqExposureMode_PreExposurePause
+    NONE = 0
+    SIMULTANEOUS = 1
+    PRE_EXPOSURE = 2
+    PRE_EXPOSURE_PAUSE = 3
 
 
 class ProductFamily(IntEnum):
-    TECNAI = const.ProductFamily_Tecnai
-    TITAN = const.ProductFamily_Titan
+    TECNAI = 0
+    TITAN = 1
