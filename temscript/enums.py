@@ -42,6 +42,12 @@ class StageStatus(IntEnum):
     DISABLE = 1         # Misnaming in temscript 1.X
 
 
+class MeasurementUnitType(IntEnum):
+    UNKNOWN = 0
+    METERS = 1
+    RADIANS = 2
+
+
 class StageHolderType(IntEnum):
     NONE = 0
     SINGLE_TILT = 1
@@ -49,6 +55,16 @@ class StageHolderType(IntEnum):
     INVALID = 4
     POLARA = 5
     DUAL_AXIS = 6
+
+
+class StageAxes(IntEnum):
+    NONE = 0
+    X = 1
+    Y = 2
+    Z = 4
+    A = 8
+    B = 16
+    XY = 3
 
 
 class IlluminationNormalization(IntEnum):

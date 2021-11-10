@@ -28,7 +28,7 @@ def test_projection(instrument):
     print()
 
 
-def test_acquisition(instrument, actual_acquisition=False):
+def test_acquisition(instrument, do_acquisition=False):
     camera_name = None
 
     print("Testing acquisition...")
@@ -75,10 +75,10 @@ def test_acquisition(instrument, actual_acquisition=False):
     print("Acquisition.StemAcqParams.Binning:", params.Binning)
     print()
 
-    if not actual_acquisition or not camera_name:
+    if not do_acquisition or not camera_name:
         return
 
-    print("Testing actual acquisition (%s)" % camera_name)
+    print("Testing image acquisition (%s)" % camera_name)
     acquisition.RemoveAllAcqDevices()
     acquisition.AddAcqDeviceByName(camera_name)
     images = acquisition.AcquireImages()
@@ -94,10 +94,55 @@ def test_acquisition(instrument, actual_acquisition=False):
     print()
 
 
+def test_vacuum(instrument):
+    print("Testing vacuum...")
+    vacuum = instrument.Vacuum
+    print("Vacuum.Status:", vacuum.Status)
+    print("Vacuum.PVPRunning:", vacuum.PVPRunning)
+    print("Vacuum.ColumnValvesOpen:", vacuum.ColumnValvesOpen)
+    for n, gauge in enumerate(vacuum.Gauges):
+        print("Vacuum.Gauges[%d]:" % n)
+        gauge.Read()
+        print("\tGauge.Name:", gauge.Name)
+        print("\tGauge.Pressure:", gauge.Pressure)
+        print("\tGauge.Status:", gauge.Status)
+        print("\tGauge.PressureLevel:", gauge.PressureLevel)
+    print()
+
+
+def test_stage(instrument, do_move=True):
+    print("Testing stage...")
+    stage = instrument.Stage
+    pos = stage.Position
+    print("Stage.Status:", stage.Status)
+    print("Stage.Position:", pos)
+    print("Stage.Holder:", stage.Holder)
+    for axis in 'xyzab':
+        print("Stage.AxisData(%s):" % axis, stage.AxisData(axis))
+    print()
+
+    if not do_move:
+        return
+
+    print("Testing movement")
+    print("\tStage.Goto(x=1e-6, y=-1e-6)")
+    stage.GoTo(x=1e-6, y=-1e-6)
+    print("\tStage.Position:", stage.Position)
+    print("\tStage.Goto(x=-1e-6, speed=0.5)")
+    stage.GoTo(x=-1e-6, speed=0.5)
+    print("\tStage.Position:", stage.Position)
+    print("\tStage.MoveTo() to original position")
+    stage.MoveTo(**pos)
+    print("\tStage.Position:", stage.Position)
+    print()
+
+
 # for testing on the Titan microscope PC
 print("Starting Test...")
 
 instrument = GetInstrument()
 test_projection(instrument)
 test_acquisition(instrument)
+test_vacuum(instrument)
+test_stage(instrument)
 

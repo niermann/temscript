@@ -370,49 +370,49 @@ The methods and classes directly represent the COM objects exposed by the *Scrip
 
     .. attribute:: Status
 
-        (read) One of
-            * ``stReady``
-            * ``stDisabled``
-            * ``stNotReady``
-            * ``stGoing``
-            * ``stMoving``
-            * ``stWobbling``
+        (read) *StageStatus* Status of the stage
+
+        .. versionchanged:: 2.0
+            Returns *StageStatus* instance instead of integer.
 
     .. attribute:: Position
 
         (read) Current position of stage. The function returns a ``dict``
-        object with the values of the indiviual axes.
+        object with the values of the individual axes ('x', 'y', 'z', 'a', and 'b').
 
     .. attribute:: Holder
 
-        (read) Type of holder. One of
-            * ``hoNone``
-            * ``hoSingleTilt``
-            * ``hoDoubleTilt``
-            * ``hoInvalid``
-            * ``hoPolara``
-            * ``hoDualAxis``
+        (read) *StageHolderType* Type of holder
+
+        .. versionchanged:: 2.0
+            Returns *StageHolderType* instance instead of integer.
 
     .. method:: AxisData(axis)
 
         Returns tuple with information about that axis. Returned tuple
         is of the form (*min*, *max*, *unit*), where *min* is the minimum
-        value, *max* the maximim value of the particular axis, and *unit* is
+        value, *max* the maximum value of the particular axis, and *unit* is
         a string containing the unit the axis is measured in (either 'meters' or
-        'radians'). The *axis* must be of string type and contain
-        either 'x', 'y', 'z', 'a', or 'b'.
+        'radians'). The *axis* must be one of the axes ('x', 'y', 'z', 'a', or 'b').
 
     .. method:: GoTo(x=None, y=None, z=None, a=None, b=None, speed=1.0)
 
         Moves stage to indicated position. Stage is only moved along
         the axes that are not ``None``.
 
-        Optionally the keyword 'speed' can be given, which allows to set the
+        Optionally the keyword *speed* can be given, which allows to set the
         speed of the movement. 1.0 correspond to the default speed. (internally the ``GoToWithSpeed`` method is used,
         if speed is not 1.0).
 
+        .. note::
+            At least with Titan 1.1 software, moving the stage along multiple axes with *speed* != 1.0
+            fails. Thus movement with *speed* != 1.0 must be done along a single axis.
+
         .. versionchanged:: 1.0.10
             "speed" keyword added.
+
+        .. versionchanged:: 2.0
+            Invalid keywords raise ValueError (instead of TypeError)
 
     .. method:: MoveTo(x=None, y=None, z=None, a=None, b=None)
 
@@ -422,6 +422,9 @@ The methods and classes directly represent the COM objects exposed by the *Scrip
 
             b->0; a->0; z->Z; (x,y)->(X,Y); a->A; b->B
 
+        .. versionchanged:: 2.0
+            Invalid keywords raise ValueError (instead of TypeError)
+
 
 Vacuum related classes
 ----------------------
@@ -430,21 +433,18 @@ Vacuum related classes
 
     .. attribute:: Status
 
-        (read) One of:
-            * ``vsUnknown``
-            * ``vsOff``
-            * ``vsCameraAir``
-            * ``vsBusy``
-            * ``vsReady``
-            * ``vsElse``
+        (read) *VacuumStatus* Status of the vacuum system
 
-    .. attribute:: ColumnValvesOpen
-
-        (read/write) *bool* Status of column valves
+        .. versionchanged:: 2.0
+            Returns *VacuumStatus* instance instead of integer.
 
     .. attribute:: PVPRunning
 
         (read) *bool* Whether the prevacuum pump is running
+
+    .. attribute:: ColumnValvesOpen
+
+        (read/write) *bool* Status of column valves
 
     .. attribute:: Gauges
 
@@ -454,20 +454,19 @@ Vacuum related classes
 
         Runs a buffer cycle.
 
+
 .. class:: Gauge
 
     .. attribute:: Name
 
-        (read) *unicode* Name of the gauge
+        (read) *str* Name of the gauge
 
     .. attribute:: Status
 
-        (read) One of
-            * ``gsUndefined``
-            * ``gsUnderflow``
-            * ``gsOverflow``
-            * ``gsInvalid``
-            * ``gsValid``
+        (read) *GaugeStatus* Status of the gauge
+
+        .. versionchanged:: 2.0
+            Returns *GaugeStatus* instance instead of integer.
 
     .. attribute:: Pressure
 
@@ -475,12 +474,10 @@ Vacuum related classes
 
     .. attribute:: PressureLevel
 
-        (read) One of
-            * ``plGaugePressurelevelUndefined``
-            * ``plGaugePressurelevelLow``
-            * ``plGaugePressurelevelLowMedium``
-            * ``plGaugePressurelevelMediumHigh``
-            * ``plGaugePressurelevelHigh``
+        (read) *GaugePressureLevel* Level of the pressure
+
+        .. versionchanged:: 2.0
+            Returns *GaugePressureLevel* instance instead of integer.
 
     .. method:: Read()
 
