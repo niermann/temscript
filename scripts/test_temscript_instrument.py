@@ -1,5 +1,7 @@
 from instrument2 import GetInstrument
 
+from temscript import CondenserMode
+
 
 def test_projection(instrument):
     print("Testing projection...")
@@ -110,7 +112,7 @@ def test_vacuum(instrument):
     print()
 
 
-def test_stage(instrument, do_move=True):
+def test_stage(instrument, do_move=False):
     print("Testing stage...")
     stage = instrument.Stage
     pos = stage.Position
@@ -137,12 +139,58 @@ def test_stage(instrument, do_move=True):
     print()
 
 
+def test_camera(instrument):
+    print("Testing camera...")
+    camera = instrument.Camera
+    print("Camera.Stock:", camera.Stock)
+    print("Camera.MainScreen:", camera.MainScreen)
+    print("Camera.IsSmallScreenDown:", camera.IsSmallScreenDown)
+    print("Camera.MeasuredExposureTime:", camera.MeasuredExposureTime)
+    print("Camera.FilmText:", repr(camera.FilmText))
+    print("Camera.ManualExposureTime:", camera.ManualExposureTime)
+    print("Camera.PlateuMarker:", camera.PlateuMarker)
+    print("Camera.ExposureNumber:", camera.ExposureNumber)
+    print("Camera.Usercode:", repr(camera.Usercode))
+    print("Camera.ManualExposure:", camera.ManualExposure)
+    print("Camera.PlateLabelDataType:", camera.PlateLabelDataType)
+    print("Camera.ScreenDim:", camera.ScreenDim)
+    print("Camera.ScreenDimText:", repr(camera.ScreenDimText))
+    print("Camera.ScreenCurrent:", camera.ScreenCurrent)
+    print()
+
+
+def test_illumination(instrument):
+    print("Testing illumination...")
+    illum = instrument.Illumination
+    print("Illumination.Mode:", illum.Mode)
+    print("Illumination.SpotsizeIndex:", illum.SpotsizeIndex)
+    print("Illumination.Intensity:", illum.Intensity)
+    print("Illumination.IntensityZoomEnabled:", illum.IntensityZoomEnabled)
+    #print("Illumination.IntensityLimitEnabled:", illum.IntensityLimitEnabled)
+    print("Illumination.Shift:", illum.Shift)
+    print("Illumination.Tilt:", illum.Tilt)
+    print("Illumination.RotationCenter:", illum.RotationCenter)
+    print("Illumination.CondenserStigmator:", illum.CondenserStigmator)
+    print("Illumination.DFMode:", illum.DFMode)
+    print("Illumination.CondenserMode:", illum.CondenserMode)
+    print("Illumination.IlluminatedArea:", illum.IlluminatedArea)
+    print("Illumination.ProbeDefocus:", illum.ProbeDefocus)
+    print("Illumination.ConvergenceAngle:", illum.ConvergenceAngle)
+    #print("Illumination.StemMagnification:", illum.StemMagnification)
+    #print("Illumination.StemRotation:", illum.StemRotation)
+    print()
+
+
 # for testing on the Titan microscope PC
 print("Starting Test...")
 
+full_test = False
 instrument = GetInstrument()
 test_projection(instrument)
-test_acquisition(instrument)
+test_acquisition(instrument, do_acquisition=full_test)
 test_vacuum(instrument)
-test_stage(instrument)
+test_stage(instrument, do_move=full_test)
+test_camera(instrument)
+test_illumination(instrument)
+
 

@@ -532,12 +532,79 @@ class Stage(IUnknown):
         return (data.MinPos, data.MaxPos, Stage.UNIT_STRING.get(data.UnitType))
 
 
+class ScreenPosition(IntEnum):
+    UNKNOWN = 1
+    UP = 2
+    DOWN = 3
+
+
+class PlateLabelDateFormat(IntEnum):
+    NO_DATA = 0
+    DDMMYY = 1
+    MMDDYY = 2
+    YYMMDD = 3
+
+
+class Camera(IUnknown):
+    IID = UUID("9851bc41-1b8c-11d3-ae0a-00a024cba50c")
+
+    Stock = LongProperty(get_index=8)
+    MainScreen = EnumProperty(ScreenPosition, get_index=9, put_index=10)
+    IsSmallScreenDown = VariantBoolProperty(get_index=11)
+    MeasuredExposureTime = DoubleProperty(get_index=12)
+    FilmText = StringProperty(get_index=13, put_index=14)
+    ManualExposureTime = DoubleProperty(get_index=15, put_index=16)
+    PlateuMarker = VariantBoolProperty(get_index=17, put_index=18)
+    ExposureNumber = LongProperty(get_index=19, put_index=20)
+    Usercode = StringProperty(get_index=21, put_index=22)
+    ManualExposure = VariantBoolProperty(get_index=23, put_index=24)
+    PlateLabelDataType = EnumProperty(PlateLabelDateFormat, get_index=25, put_index=26)
+    ScreenDim = VariantBoolProperty(get_index=27, put_index=28)
+    ScreenDimText = StringProperty(get_index=29, put_index=30)
+    ScreenCurrent = DoubleProperty(get_index=31)
+
+    TAKE_EXPOSURE_METHOD = ctypes.WINFUNCTYPE(ctypes.HRESULT)
+
+    def TakeExposure(self):
+        Camera.TAKE_EXPOSURE_METHOD(self.get())
+
+
+class Illumination(IUnknown):
+    IID = UUID("ef960690-1c38-11d3-ae0b-00a024cba50c")
+
+    Mode = EnumProperty(IlluminationMode, get_index=8, put_index=9)
+    SpotsizeIndex = LongProperty(get_index=10, put_index=11)
+    Intensity = DoubleProperty(get_index=12, put_index=13)
+    IntensityZoomEnabled = VariantBoolProperty(get_index=14, put_index=15)
+    IntensityLimitEnabled = VariantBoolProperty(get_index=16, put_index=17)
+    BeamBlanked = VariantBoolProperty(get_index=18, put_index=19)
+    Shift = VectorProperty(get_index=20, put_index=21)
+    Tilt = VectorProperty(get_index=22, put_index=23)
+    RotationCenter = VectorProperty(get_index=24, put_index=25)
+    CondenserStigmator = VectorProperty(get_index=26, put_index=27)
+    DFMode = EnumProperty(DarkFieldMode, get_index=28, put_index=29)
+    DarkFieldMode = EnumProperty(DarkFieldMode, get_index=28, put_index=29)
+    CondenserMode = EnumProperty(CondenserMode, get_index=30, put_index=31)
+    IlluminatedArea = DoubleProperty(get_index=32, put_index=33)
+    ProbeDefocus = DoubleProperty(get_index=34)
+    ConvergenceAngle = DoubleProperty(get_index=35)
+    StemMagnification = DoubleProperty(get_index=36, put_index=37)
+    StemRotation = DoubleProperty(get_index=38, put_index=39)
+
+    NORMALIZE_METHOD = ctypes.WINFUNCTYPE(ctypes.HRESULT, ctypes.c_int)
+
+    def Normalize(self, norm):
+        Illumination.NORMALIZE_METHOD(self.get(), norm)
+
+
 class Instrument(IUnknown):
     IID = UUID("bc0a2b11-10ff-11d3-ae00-00a024cba50c")
 
     AutoNormalizeEnabled = VariantBoolProperty(get_index=8, put_index=9)
     Vacuum = ObjectProperty(Vacuum, get_index=13)
+    Camera = ObjectProperty(Camera, get_index=14)
     Stage = ObjectProperty(Stage, get_index=15)
+    Illumination = ObjectProperty(Illumination, get_index=16)
     Projection = ObjectProperty(Projection, get_index=17)
     Acquisition = ObjectProperty(Acquisition, get_index=24)
 

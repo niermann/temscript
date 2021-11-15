@@ -110,16 +110,17 @@ The methods and classes directly represent the COM objects exposed by the *Scrip
 
     .. attribute:: Mode
 
-        (read/write) Setting of minicondensor lens
-            * ``imNanoProbe``
-            * ``imMicroProbe``
+        (read/write) *IlluminationMode* Setting of minicondensor lens
+
+        .. versionchanged:: 2.0
+            Returns *IlluminationMode* instance instead of integer.
 
     .. attribute:: DFMode
 
-        (read/write) Dark field mode:
-            * ``dfOff``
-            * ``dfCartesian``
-            * ``dfConical``
+        (read/write) *DarkFieldMode* Dark field mode.
+
+        .. versionchanged:: 2.0
+            Returns *DarkFieldMode* instance
 
     .. attribute:: DarkFieldMode
 
@@ -160,9 +161,9 @@ The methods and classes directly represent the COM objects exposed by the *Scrip
 
     .. attribute:: Tilt
 
-        (read/write)
-            * in ``dfCartesian`` mode: (X,Y) tuple of shift value (Radians).
-            * in ``dfConical`` mode: (theta,phi) tuple of angles (Radians).
+        (read/write) Meaning depends on the setting of :attr:`DFMode`
+            * in ``DarkFieldMode.CARTESIAN`` mode: (X, Y) tuple of shift value (Radians).
+            * in ``DarkFieldMode.CONICAL`` mode: (theta, phi) tuple of angles (Radians).
 
         This corresponds to the *DF Tilt* setting (which is displayed in logical units) in the
         *System Status* page. The scaling between the *Radians* and the *logical units*
@@ -187,36 +188,31 @@ The methods and classes directly represent the COM objects exposed by the *Scrip
 
     .. attribute:: CondenserMode
 
-        (read/write) One of
-            * ``cmParallelIllumination``
-            * ``cmProbeIllumination``
-
+        (read/write) *CondenserMode* Condenser mode
         (Available only on Titan).
+
+        .. versionchanged:: 2.0
+            Returns *CondenserMode* instance
 
     .. attribute:: IlluminatedArea
 
         (read/write) *float* Illuminated area (meters? Is diameter meant? still to check). Requires parallel
-        condensor mode. (Available only on Titan).
+        condensor mode.
+        (Available only on Titan and only in `CondenserMode.PARALLEL` mode).
 
     .. attribute:: ProbeDefocus
 
         (read/write) *float* Probe defocus (meters) Requires probe condensor mode.
-        (Available only on Titan).
+        (Available only on Titan and only in `CondenserMode.PROBE` mode).
 
     .. attribute:: ConvergenceAngle
 
         (read/write) *float* Convergence angle (radians) Requires probe condensor mode.
-        (Available only on Titan).
+        (Available only on Titan and only in `CondenserMode.PROBE` mode).
 
     .. method:: Normalize(mode)
 
-        Normalizes condenser lenses. *mode* is one of
-            * ``nmSpotsize``
-            * ``nmIntensity``
-            * ``nmCondenser``
-            * ``nmMiniCondenser``
-            * ``nmObjectivePole``
-            * ``nmAll``
+        Normalizes condenser lenses. *norm* specifies what elements to normalize, see *IlluminationNormalization*
 
 
 :class:`Projection` - Projective system
@@ -736,6 +732,83 @@ Acquisition related classes
     .. attribute:: Array
 
         (read) *numpy.ndarray* Acquired data as numpy array object.
+
+
+Fluscreen and plate camera
+--------------------------
+
+.. class:: Camera
+
+    Fluorescent screen and plate camera related methods.
+
+    Since the plate camera is not supported anymore on newer Titans most of the methods
+    of the Camera class are meaningless. Nevertheless, the attributes :attr:`ScreenCurrent`
+    :attr:`MainScreen`, and :attr:`IsSmallScreenDown` still are usefull for fluscreen control.
+
+    .. versionadded:: 2.0
+
+    .. attribute:: Stock
+
+        (read) *int* Number of plates still on stock
+
+    .. attribute:: MainScreen
+
+        (read/write) *ScreenPosition* Position of the fluscreen.
+
+    .. attribute:: IsSmallScreenDown
+
+        (read) *bool* Whether the focus screen is down.
+
+    .. attribute:: MeasuredExposureTime
+
+        (read) *float* Measured exposure time (seconds)
+
+    .. attribute:: FilmText
+
+        (read/write) *str* Text on plate. Up to 96 characters long.
+
+    .. attribute:: ManualExposureTime
+
+        (read/write) *float* Exposure time for manual exposures (seconds)
+
+    .. attribute:: PlateuMarker
+
+        (read/write) *bool*
+
+        .. note:: Undocumented property
+
+    .. attribute:: ExposureNumber
+
+        (read/write) *int* Exposure number. The number is given as a 5 digit number
+        plus 100000 * the ASCII code of one of the characters '0' to '9' or 'A' to 'Z'.
+
+    .. attribute:: Usercode
+
+        (read/write) *str* Three letter user code displayed on plate.
+
+    .. attribute:: ManualExposure
+
+        (read/write) *bool* Whether the `ManualExposureTime` will be used for plate exposure.
+
+    .. attribute:: PlateLabelDataType
+
+        (read/write) *PlateLabelDateFormat* Format of the date displayed on plate
+
+    .. attribute:: ScreenDim
+
+        (read/write) *bool* Whether the computer monitor is dimmed
+
+    .. attribute:: ScreenDimText
+
+        (read/write) *str* Test displayed when the computer monitor is dimmed.
+
+    .. attribute:: ScreenCurrent
+
+        (read) *float* The current measured on the flu screen (Amperes)
+
+    .. method:: TakeExposure()
+
+        Take single plate exposure.
 
 
 Miscellaneous classes
