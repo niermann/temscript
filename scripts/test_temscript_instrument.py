@@ -166,6 +166,7 @@ def test_illumination(instrument):
     print("Illumination.SpotsizeIndex:", illum.SpotsizeIndex)
     print("Illumination.Intensity:", illum.Intensity)
     print("Illumination.IntensityZoomEnabled:", illum.IntensityZoomEnabled)
+    #Critical error?
     #print("Illumination.IntensityLimitEnabled:", illum.IntensityLimitEnabled)
     print("Illumination.Shift:", illum.Shift)
     print("Illumination.Tilt:", illum.Tilt)
@@ -176,8 +177,43 @@ def test_illumination(instrument):
     print("Illumination.IlluminatedArea:", illum.IlluminatedArea)
     print("Illumination.ProbeDefocus:", illum.ProbeDefocus)
     print("Illumination.ConvergenceAngle:", illum.ConvergenceAngle)
+    # Only in STEM mode?
     #print("Illumination.StemMagnification:", illum.StemMagnification)
     #print("Illumination.StemRotation:", illum.StemRotation)
+    print()
+
+
+def test_gun(instrument):
+    print("Testing gun...")
+    gun = instrument.Gun
+    print("Gun.HTState:", gun.HTState)
+    print("Gun.Intensity:", gun.Intensity)
+    print("Gun.HTValue:", gun.HTValue)
+    print("Gun.HTMaxValue:", gun.HTMaxValue)
+    print("Gun.Shift:", gun.Shift)
+    print("Gun.Tilt:", gun.Tilt)
+    print()
+
+
+def test_blankershutter(instrument):
+    print("Testing blanker/shutter...")
+    bs = instrument.BlankerShutter
+    print("BlankerShutter.ShutterOverrideOn:", bs.ShutterOverrideOn)
+    print()
+
+
+def test_instrument_mode_control(instrument):
+    print("Testing instrument mode control...")
+    ctrl = instrument.InstrumentModeControl
+    print("InstrumentModeControl.StemAvailable:", ctrl.StemAvailable)
+    print("InstrumentModeControl.InstrumentMode:", ctrl.InstrumentMode)
+    print()
+
+
+def test_configuration(instrument):
+    print("Testing configuration...")
+    config = instrument.Configuration
+    print("Configuration.ProductFamily:", config.ProductFamily)
     print()
 
 
@@ -192,5 +228,9 @@ test_vacuum(instrument)
 test_stage(instrument, do_move=full_test)
 test_camera(instrument)
 test_illumination(instrument)
+test_gun(instrument)
+test_blankershutter(instrument)
+test_instrument_mode_control(instrument)
+test_configuration(instrument)
 
 

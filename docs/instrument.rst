@@ -60,9 +60,21 @@ The methods and classes directly represent the COM objects exposed by the *Scrip
 
         (read) Instance of :class:`Configuration` for microscope identification.
 
+    .. attribute:: Camera
+
+        (read) Instance of :class:`Camera` for fluscreen / plate camera control.
+
+        .. versionadded:: 2.0
+
     .. attribute:: AutoNormalizeEnabled
 
         (read/write) *bool* Enable/Disable autonormalization procedures
+
+    .. method:: NormalizeAll()
+
+        Normalize all the lenses
+
+        .. versionadded:: 2.0
 
 
 :class:`Gun` - Gun stuff
@@ -82,10 +94,10 @@ The methods and classes directly represent the COM objects exposed by the *Scrip
 
     .. attribute:: HTState
 
-        (read/write) One of these
-            * ``htDisabled``
-            * ``htOff``
-            * ``htOn``
+        (read/write) *HighTensionState* State of accelerator
+
+        .. versionchanged:: 2.0
+            Returns *HighTensionState* instance instead of integer.
 
     .. attribute:: HTValue
 
@@ -822,9 +834,11 @@ Miscellaneous classes
 
     .. attribute:: InstrumentMode
 
-        (read/write) Possible values
-            * ``InstrumentMode_TEM``
-            * ``InstrumentMode_STEM``
+        (read/write) *nstrumentMode* TEM or STEM mode
+
+        .. versionchanged:: 2.0
+            Returns *nstrumentMode* instance instead of integer.
+
 
 .. class:: BlankerShutter
 
@@ -838,11 +852,14 @@ Miscellaneous classes
             determine externally, that the override shutter is the active.
             So **always** reset this value from script, when finished.
 
+
 .. class:: Configuration
 
     .. attribute:: ProductFamily
 
-        (read) Possible values
-            * ``ProductFamily_Tecnai``
-            * ``ProductFamily_Titan``
+        (read) *ProductFamily* Microscope type
+
+        .. versionchanged:: 2.0
+            Returns *ProductFamily* instance instead of integer.
+
 

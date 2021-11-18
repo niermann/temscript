@@ -597,6 +597,35 @@ class Illumination(IUnknown):
         Illumination.NORMALIZE_METHOD(self.get(), norm)
 
 
+class Gun(IUnknown):
+    IID = UUID("e6f00870-3164-11d3-b4c8-00a024cb9221")
+
+    HTState = EnumProperty(HighTensionState, get_index=7, put_index=8)
+    HTValue = DoubleProperty(get_index=9, put_index=10)
+    HTMaxValue = DoubleProperty(get_index=11)
+    Shift = VectorProperty(get_index=12, put_index=13)
+    Tilt = VectorProperty(get_index=14, put_index=15)
+
+
+class BlankerShutter(IUnknown):
+    IID = UUID("f1f59bb0-f8a0-439d-a3bf-87f527b600c4")
+
+    ShutterOverrideOn = VariantBoolProperty(get_index=7, put_index=8)
+
+
+class InstrumentModeControl(IUnknown):
+    IID = UUID("8dc0fc71-ff15-40d8-8174-092218d8b76b")
+
+    StemAvailable = VariantBoolProperty(get_index=7)
+    InstrumentMode = EnumProperty(InstrumentMode, get_index=8, put_index=9)
+
+
+class Configuration(IUnknown):
+    IID = UUID("39cacdaf-f47c-4bbf-9ffa-a7a737664ced")
+
+    ProductFamily = EnumProperty(ProductFamily, get_index=7)
+
+
 class Instrument(IUnknown):
     IID = UUID("bc0a2b11-10ff-11d3-ae00-00a024cba50c")
 
@@ -606,9 +635,16 @@ class Instrument(IUnknown):
     Stage = ObjectProperty(Stage, get_index=15)
     Illumination = ObjectProperty(Illumination, get_index=16)
     Projection = ObjectProperty(Projection, get_index=17)
+    Gun = ObjectProperty(Gun, get_index=18)
+    BlankerShutter = ObjectProperty(BlankerShutter, get_index=22)
+    InstrumentModeControl = ObjectProperty(InstrumentModeControl, get_index=23)
     Acquisition = ObjectProperty(Acquisition, get_index=24)
+    Configuration = ObjectProperty(Configuration, get_index=25)
 
     NORMALIZE_ALL_METHOD = ctypes.WINFUNCTYPE(ctypes.HRESULT)(7, "NormalizeAll")
+
+    def NormalizeAll(self):
+        Instrument.NORMALIZE_ALL_METHOD(self.get())
 
     # 10: virtual HRESULT __stdcall raw_ReturnError ( /*[in]*/ enum TEMScriptingError TE ) = 0;
     GET_VECTOR_METHOD = ctypes.WINFUNCTYPE(ctypes.HRESULT, ctypes.c_void_p)(11, "get_Vector")
