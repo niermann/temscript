@@ -35,7 +35,7 @@ class Microscope(object):
     """
 
     def __init__(self):
-        from .instrument import GetInstrument
+        from ._instrument_com import GetInstrument
         tem = GetInstrument()
         self._tem_instrument = tem
         self._tem_gun = tem.Gun
@@ -337,7 +337,7 @@ class Microscope(object):
             * "binning": Binning
             * "dwelltime(s)": Dwell time in seconds
         """
-        from .instrument import CCDCamera, STEMDetector
+        from ._instrument_com import CCDCamera, STEMDetector
         det = self._find_detector(name)
         if isinstance(det, CCDCamera):
             return self._get_camera_param(det)
@@ -352,7 +352,7 @@ class Microscope(object):
         Allowed keys are described in the :meth:`get_detector_param` method.
         If setting a parameter fails, no error is given.
         """
-        from .instrument import CCDCamera, STEMDetector
+        from ._instrument_com import CCDCamera, STEMDetector
         det = self._find_detector(name)
         if isinstance(det, CCDCamera):
             self._set_camera_param(det, param)

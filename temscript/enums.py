@@ -167,3 +167,17 @@ class AcqExposureMode(IntEnum):
 class ProductFamily(IntEnum):
     TECNAI = 0
     TITAN = 1
+
+
+class ScreenPosition(IntEnum):
+    UNKNOWN = 1
+    UP = 2
+    DOWN = 3
+
+
+class PlateLabelDateFormat(IntEnum):
+    NO_DATA = 0
+    DDMMYY = 1
+    MMDDYY = 2
+    YYMMDD = 3
+

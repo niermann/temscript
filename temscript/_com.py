@@ -9,11 +9,6 @@ COINIT_MULTITHREADED = 0
 CLSCTX_ALL = 0x17
 
 
-_ole32 = ctypes.oledll.ole32
-_ole32.CoInitializeEx(None, ctypes.c_int(COINIT_MULTITHREADED))
-_oleauto = ctypes.windll.oleaut32
-
-
 class IUnknown:
     """Base class for COM interface classes, adapter for IUnknown methods"""
     __slots__ = '_ptr'
@@ -373,3 +368,7 @@ class SafeArray:
 
         return result
 
+
+_ole32 = ctypes.oledll.ole32
+_ole32.CoInitializeEx(None, ctypes.c_int(COINIT_MULTITHREADED))
+_oleauto = ctypes.windll.oleaut32

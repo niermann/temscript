@@ -1,6 +1,4 @@
-from instrument2 import GetInstrument
-
-from temscript import CondenserMode
+from temscript import GetInstrument
 
 
 def test_projection(instrument):
