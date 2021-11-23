@@ -215,20 +215,20 @@ def test_configuration(instrument):
     print()
 
 
-# for testing on the Titan microscope PC
-print("Starting Test...")
+if __name__ == '__main__':
+    # for testing on the Titan microscope PC
+    print("Starting Test...")
 
-full_test = False
-instrument = GetInstrument()
-test_projection(instrument)
-test_acquisition(instrument, do_acquisition=full_test)
-test_vacuum(instrument)
-test_stage(instrument, do_move=full_test)
-test_camera(instrument)
-test_illumination(instrument)
-test_gun(instrument)
-test_blankershutter(instrument)
-test_instrument_mode_control(instrument)
-test_configuration(instrument)
-
+    full_test = False
+    instrument = GetInstrument()
+    test_projection(instrument)
+    test_acquisition(instrument, do_acquisition=full_test)
+    test_vacuum(instrument)
+    test_stage(instrument, do_move=full_test)
+    test_camera(instrument)
+    test_illumination(instrument)
+    test_gun(instrument)
+    test_blankershutter(instrument)
+    test_instrument_mode_control(instrument)
+    test_configuration(instrument)
 

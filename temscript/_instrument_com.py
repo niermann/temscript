@@ -3,7 +3,10 @@ from .enums import *
 from ._com import *
 
 
-__all__ = 'GetInstrument',
+__all__ = ('GetInstrument', 'Projection', 'CCDCameraInfo', 'CCDAcqParams', 'CCDCamera',
+           'STEMDetectorInfo', 'STEMAcqParams', 'STEMDetector', 'AcqImage', 'Acquisition',
+           'Gauge', 'Vacuum', 'Stage', 'Camera', 'Illumination', 'Gun', 'BlankerShutter',
+           'InstrumentModeControl', 'Configuration', 'Instrument')
 
 
 class BaseProperty:

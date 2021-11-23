@@ -1,7 +1,4 @@
 # Have at least some stubs to develop software also on off-line computers...
-__all__ = 'GetInstrument',
-
-
 class Projection:
     pass
 
@@ -81,5 +78,4 @@ class Instrument:
 def GetInstrument():
     """Returns Instrument instance."""
     raise RuntimeError("temscript microscope API is not accessible")
-
 
