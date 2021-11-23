@@ -147,9 +147,13 @@ The methods and classes directly represent the COM objects exposed by the *Scrip
 
         (read/write) (X,Y) tuple in the range of -1.0 to +1.0 (logical units).
 
-    .. attribute:: SpotsizeIndex
+    .. attribute:: SpotSizeIndex
 
         (read/write) *int* The spot size (1-11).
+
+    .. attribute:: SpotsizeIndex
+
+        (read/write) Alias of :attr:``SpotSizeIndex``
 
     .. attribute:: Intensity
 

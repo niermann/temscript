@@ -567,6 +567,7 @@ class Illumination(IUnknown):
 
     Mode = EnumProperty(IlluminationMode, get_index=8, put_index=9)
     SpotsizeIndex = LongProperty(get_index=10, put_index=11)
+    SpotSizeIndex = LongProperty(get_index=10, put_index=11)
     Intensity = DoubleProperty(get_index=12, put_index=13)
     IntensityZoomEnabled = VariantBoolProperty(get_index=14, put_index=15)
     IntensityLimitEnabled = VariantBoolProperty(get_index=16, put_index=17)
