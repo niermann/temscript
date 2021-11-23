@@ -1,12 +1,11 @@
-from __future__ import division, print_function
 import numpy as np
 from math import pi
 
 from .enums import *
-from .microscope import _parse_enum
+from .base_microscope import BaseMicroscope, parse_enum
 
 
-class NullMicroscope(object):
+class NullMicroscope(BaseMicroscope):
     """
     Microscope-like class which emulates an microscope.
 
@@ -35,6 +34,11 @@ class NullMicroscope(object):
             "shutter_mode": "POST_SPECIMEN",
             "pre_exposure(s)": 0.0,
             "pre_exposure_pause(s)": 0.0
+        }
+        self._stem_acq_param = {
+            "image_size": "FULL",
+            "dwell_time(s)": 1e-6,
+            "binning": 1,
         }
         self._voltage = voltage
         self._image_shift = np.zeros(2, dtype=float)
@@ -65,17 +69,17 @@ class NullMicroscope(object):
 
     def get_vacuum(self):
         return {
-            "status": "READY",
+            "status": VacuumStatus.READY.name,
             "column_valves_open": self._column_valves,
             "pvp_running": False,
             "gauges(Pa)": {},
         }
 
     def get_stage_holder(self):
-        return "UNKNOWN"
+        return StageHolderType.SINGLE_TILT.name
 
     def get_stage_status(self):
-        return "READY"
+        return StageStatus.READY.name
 
     def get_stage_limits(self):
         return {
@@ -101,7 +105,7 @@ class NullMicroscope(object):
             value = max(mn, min(mx, float(pos[key])))
             self._stage_pos[key] = value
 
-    def get_detectors(self):
+    def get_cameras(self):
         return {
             "CCD" : {
                 "type": "CAMERA",
@@ -115,16 +119,25 @@ class NullMicroscope(object):
             }
         }
 
-    def get_detector_param(self, name):
+    def get_stem_detectors(self):
+        return {}
+
+    def get_camera_param(self, name):
         if name == "CCD":
             return dict(self._ccd_param)
         else:
-            raise ValueError("Unknown detector")
+            raise KeyError("Unknown detector")
+
+    def get_stem_detector_param(self, name):
+        raise KeyError("Unknown detector")
+
+    def get_stem_acquisition_param(self):
+        return dict(self._stem_acq_param)
 
     def set_detector_param(self, name, param):
         if name == "CCD":
             try:
-                self._ccd_param["image_size"] = _parse_enum(AcqImageSize, param["image_size"]).name
+                self._ccd_param["image_size"] = parse_enum(AcqImageSize, param["image_size"]).name
             except Exception:
                 pass
             try:
@@ -138,7 +151,7 @@ class NullMicroscope(object):
             except Exception:
                 pass
             try:
-                self._ccd_param["correction"] = _parse_enum(AcqImageCorrection, param["correction"]).name
+                self._ccd_param["correction"] = parse_enum(AcqImageCorrection, param["correction"]).name
             except Exception:
                 pass
         else:
@@ -150,9 +163,9 @@ class NullMicroscope(object):
         for det in detectors:
             if det == "CCD":
                 size = self.CCD_SIZE // self._ccd_param["binning"]
-                if self._ccd_param["image_size"] == "HALF":
+                if self._ccd_param["image_size"] == AcqImageSize.HALF.name:
                     size //= 2
-                elif self._ccd_param["image_size"] == "QUARTER":
+                elif self._ccd_param["image_size"] == AcqImageSize.QUARTER.name:
                     size //= 4
                 if self._wait_exposure:
                     import time
@@ -188,13 +201,13 @@ class NullMicroscope(object):
             raise ValueError("Unknown normalization mode: %s" % mode)
 
     def get_projection_sub_mode(self):
-        return ProjectionSubMode(self._projection_sub_mode)
+        return self._projection_sub_mode.name
 
     def get_projection_mode(self):
-        return ProjectionMode(self._projection_mode)
+        return self._projection_mode.name
 
     def set_projection_mode(self, mode):
-        mode = _parse_enum(ProjectionMode, mode)
+        mode = parse_enum(ProjectionMode, mode)
         self._projection_mode = mode
 
     def get_projection_mode_string(self):
@@ -233,49 +246,23 @@ class NullMicroscope(object):
     def set_intensity(self, value):
         self._intensity = float(value)
 
+    def get_objective_stigmator(self):
+        return tuple(self._objective_stigmator)
+
     def set_objective_stigmator(self, value):
         value = np.atleast_1d(value)
         self._objective_stigmator[...] = value
 
-    def get_objective_stigmator(self):
-        return tuple(self._objective_stigmator)
+    def get_condenser_stigmator(self):
+        return tuple(self._condenser_stigmator)
 
     def set_condenser_stigmator(self, value):
         value = np.atleast_1d(value)
         self._condenser_stigmator[...] = value
 
-    def get_condenser_stigmator(self):
-        return tuple(self._condenser_stigmator)
+    def get_diffraction_shift(self):
+        return tuple(self._diffraction_shift)
 
     def set_diffraction_shift(self, value):
         value = np.atleast_1d(value)
         self._diffraction_shift[...] = value
-
-    def get_diffraction_shift(self):
-        return tuple(self._diffraction_shift)
-
-    def get_optics_state(self):
-        state = {
-            "family": self.get_family(),
-            "microscope_id": self.get_microscope_id(),
-            "temscript_version": self.get_version(),
-            "voltage(kV)": self.get_voltage(),
-            "stage_holder": self.get_stage_holder(),
-            "stage_position": self.get_stage_position(),
-            "image_shift": self.get_image_shift(),
-            "beam_shift": self.get_beam_shift(),
-            "beam_tilt": self.get_beam_tilt(),
-            "projection_sub_mode": self.get_projection_sub_mode().name,
-            "projection_mode": self.get_projection_mode().name,
-            "projection_mode_string": self.get_projection_mode_string(),
-            "magnification_index": self.get_magnification_index(),
-            "indicated_camera_length": self.get_indicated_camera_length(),
-            "indicated_magnification": self.get_indicated_magnification(),
-            "defocus": self.get_defocus(),
-            "intensity": self.get_intensity(),
-            "objective_excitation": self.get_objective_excitation(),
-            "condenser_stigmator": self.get_condenser_stigmator(),
-            "objective_stigmator": self.get_objective_stigmator(),
-            "diffraction_shift": self.get_diffraction_shift(),
-        }
-        return state

@@ -1,0 +1,638 @@
+from abc import ABC, abstractmethod
+
+
+def parse_enum(enum_type, item):
+    """Try to parse 'item' (string or integer) to enum 'type'"""
+    if isinstance(item, enum_type):
+        return item
+    try:
+        return enum_type[item]
+    except KeyError:
+        return enum_type(item)
+
+
+# Allowed stage axes
+STAGE_AXES = frozenset(('x', 'y', 'z', 'a', 'b'))
+
+
+class BaseMicroscope(ABC):
+    """
+    Base class for Microscope classes. Do not use directly.
+    """
+    @abstractmethod
+    def get_family(self):
+        """Return product family (see :class:`ProductFamily`): "TITAN", "TECNAI", ..."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_microscope_id(self):
+        """
+        Return microscope ID.
+
+        There is no way to read this via the scripting adapter directly, thus this method uses hostname instead.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_version(self):
+        """
+        Return version string for temscript.
+
+        .. versionadded:: 1.0.8
+
+        :return: String "major.minor.patchlevel"
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_voltage(self):
+        """
+        Return acceleration voltage in kV.
+
+        :return: Float with voltage
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_vacuum(self):
+        """
+        Return status of the vacuum system. The method will return a dict with the following entries:
+
+            * "status": Status of the vacuum system (see :class:`VacuumStatus`): "READY", "OFF", ...
+            * "column_valves_open": Whether the column valves are currently open
+            * "pvp_running": Whether the PVP is running
+            * "gauges(Pa)": dict with Gauge values in Pascal (or the string "UNDERFLOW" or "OVERFLOW")
+
+        .. versionchanged: 1.0.8
+            Key of "gauges(Pa)" in the returned dict was changed from "gauges"
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_stage_holder(self):
+        """Return holder currently in stage (see :class:`StageHolderType`)"""
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_stage_status(self):
+        """Return status of stage (see :class:`StageStatus`)"""
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_stage_limits(self):
+        """
+        Returns dictionary with min/max tuples for all holder axes.
+        The tuples are the values, the axis names are the keys.
+        For axes "x", "y", "z" the unit is meters
+        For axes "a", "b" the unit is radians
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_stage_position(self):
+        """
+        Returns dictionary with stage position (axes names are used as keys).
+        For axes "x", "y", "z" the unit is meters
+        For axes "a", "b" the unit is radians
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_stage_position(self, pos=None, method="GO", **kw):
+        """
+        Set new stage position.
+
+        The new position can either be passed as dict `pos` or passed by keywords
+        `x`, `y`, `z`, `a`, `b`. If both are present, the keywords override values from the dict.
+        Only the axes are driven which are mentioned in the `pos` dict or by keywords.
+
+        The optional keyword "speed" allows to set movement speed (only "GO" method). A speed of 1.0 corresponds
+        to default speed.
+
+        For axes "x", "y", "z" the unit is meters.
+        For axes "a", "b" the unit is radians.
+
+        There are two methods of movement:
+
+            * "GO": Moves directly to new stage position * "MOVE": Avoids pole piece touches, by first zeroing the
+            angle, moving the stage than, and setting the angles again.
+
+        .. versionchanged:: 1.0.10
+            "speed" keyword added.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_cameras(self):
+        """
+        Return dictionary with all available cameras. The method will return a dict, indexed by camera name, with
+        another dict as values.
+
+        For cameras the embedded dict will additionally have the following keys:
+
+                * "type": "CAMERA"
+                * "height": Height of the detector
+                * "width": Width of the detector
+                * "pixel_size(um)": Pixel size in micrometers
+                * "binnings": List of supported binnings
+                * "shutter_modes": List of supported shutter modes (see :class:`AcqShutterMode`)
+                * "pre_exposure_limits(s)": Tuple with Min/Max values of pre exposure times in seconds
+                * "pre_exposure_pause_limits(s)": Tuple with Min/Max values of pre exposure pause times in seconds
+
+        For "STEM_DETECTOR" detectors the embedded dict will additionally have the following keys:
+
+                * "binnings": List of supported binnings
+
+        .. versionadded:: 2.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_stem_detectors(self):
+        """
+        Return dictionary with all available stem detectors. The method will return a dict, indexed by camera name, with
+        another dict as values.
+
+        The embedded dict will additionally have the following keys:
+
+                * "type": "STEM_DETECTOR"
+                * "binnings": List of supported binnings
+
+        .. versionadded:: 2.0
+        """
+        raise NotImplementedError
+
+    def get_detectors(self):
+        """
+        Return dictionary with all available detectors.
+
+        The returned dictionary is the combination of the dicts returned by the :meth:`get_cameras` and
+        :meth:`get_stem_detectors` methods. The embedded dicts have a key "type" with value "CAMERA" or "STEM_DETECTOR"
+        identifying the detector type.
+
+        .. see::
+            :meth:`get_cameras`, :meth:`get_stem_detectors`
+
+        .. deprecated: 2.0
+            Use :meth:`get_stem_detectors` or :meth:`get_cameras` instead.
+        """
+        import warnings
+        warnings.warn("Microscope.get_detectors() is deprecated. Please use get_stem_detectors() or get_cameras() "
+                      "instead.", DeprecationWarning)
+
+        result = {}
+        result.update(self.get_cameras())
+        result.update(self.get_stem_detectors())
+        return result
+
+    @abstractmethod
+    def get_camera_param(self, name):
+        """
+        Return dictionary with parameters for camera *name*.
+
+        The returned dictionary has the following keys:
+
+            * "image_size": Size of image (see :class:`AcqImageSize`): "FULL", "HALF", ...
+            * "binning": Binning
+            * "exposure(s)": Exposure time in seconds
+            * "correction": Correction mode (see :class:`AcqImageCorrection`)
+            * "exposure_mode": Exposure mode (see :class:`AcqExposureMode`)
+            * "shutter_mode": Shutter mode (see :class:`AcqShutterMode`)
+            * "pre_exposure(s)": Pre exposure time in seconds
+            * "pre_exposure_pause(s)": Pre exposure pause time in seconds
+
+        .. versionadded:: 2.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_stem_detector_param(self, name):
+        """
+        Return dictionary with parameters for detector *name*.
+
+        The returned dictionary has the following keys:
+
+            * "brightness": Brightness settings
+            * "contrast": Contrast setting
+
+        .. versionadded:: 2.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_stem_acquisition_param(self):
+        """
+        Return dictionary with STEM acquisition parameters.
+
+        The returned dictionary has the following keys:
+
+            * "image_size": Size of image (see :class:`AcqImageSize`): "FULL", "HALF", ...
+            * "binning": Binning
+            * "dwell_time(s)": Dwell time in seconds
+
+        .. versionadded:: 2.0
+        """
+        raise NotImplementedError
+
+    def get_detector_param(self, name):
+        """
+        Return parameters for detector `name` as dictionary.
+
+        For "CAMERA" detectors the dict will have the following keys:
+
+            * "image_size": Size of image (see :class:`AcqImageSize`): "FULL", "HALF", ...
+            * "binning": Binning
+            * "exposure(s)": Exposure time in seconds
+            * "correction": Correction mode (see :class:`AcqImageCorrection`)
+            * "exposure_mode": Exposure mode (see :class:`AcqExposureMode`)
+            * "shutter_mode": Shutter mode (see :class:`AcqShutterMode`)
+            * "pre_exposure(s)": Pre exposure time in seconds
+            * "pre_exposure_pause(s)": Pre exposure pause time in seconds
+
+        For "STEM_DETECTORS" the dict will have the following keys:
+
+            * "brightness": Brightness settings
+            * "contrast": Contrast setting
+            * "image_size": Size of image (see :class:`AcqImageSize`): "FULL", "HALF", ...
+            * "binning": Binning
+            * "dwell_time(s)": Dwell time in seconds
+
+        .. versionchanged:: 2.0
+            Key returning dwell time renamed from 'dwelltime(s)' to 'dwell_time(s)'
+
+        .. deprecated:: 2.0
+            Use the methods :meth:`get_camera_param`,  :meth:`get_stem_param`, or :meth:`get_stem_acquisition_param`
+            instead.
+        """
+        try:
+            param = self.get_camera_param(name)
+        except KeyError:
+            try:
+                param = self.get_stem_detector_param(name)
+            except KeyError:
+                raise KeyError("No detector with name %s" % name)
+            else:
+                param.update(self.get_stem_acquisition_param())
+        return param
+
+    @abstractmethod
+    def acquire(self, *args):
+        """
+        Acquire images for all detectors given as argument.
+        The images are returned in an dict indexed by detector name.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_image_shift(self):
+        """
+        Return image shift as (x,y) tuple in meters.
+
+         .. note::
+            The accuracy of this value depends on the accuracy of the calibration within the microscope.
+
+        On FEI microscopes this corresponds to the state of "User Image Shift" (in different units though).
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_image_shift(self, pos):
+        """
+        Set image shift to position `pos`, which should be an (x, y) tuple, as returned for instance by
+        :meth:`get_image_shift`.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_beam_shift(self):
+        """
+        Return beam shift as (x,y) tuple in meters.
+
+        .. note::
+            The accuracy of this value depends on the accuracy of the calibration within the microscope.
+
+        On FEI microscopes this corresponds to the state of "User Beam Shift" (in different units though).
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_beam_shift(self, shift):
+        """
+        Set beam shift to position `shift`, which should be an (x, y) tuple, as returned for instance by
+        :meth:`get_beam_shift`.
+
+        :param shift: Shift value
+        :type shift: Tuple[float, float]
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_beam_tilt(self):
+        """
+        Return beam tilt as (x, y) tuple.
+
+        The units this is returned in are radians. The accuracy of ths value depends on the accuracy of the
+        calibration within the microscope and thus is better not to be trusted blindly.
+
+        On FEI microscopes this corresponds to the state of "DF Tilt", however the tilt is always returned in
+        cartesian coordinates.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_beam_tilt(self, tilt):
+        """
+        Set beam tilt to position `tilt`, which should be an (x, y) tuple, as returned for instance by
+        :meth:`get_beam_tilt`.
+
+        On FEI microscopes, this will turn on dark field mode, unless (0, 0) is set.
+        If (0, 0) is set which will the dark field mode is turned off.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def normalize(self, mode="ALL"):
+        """
+        Normalize some or all lenses.
+
+        Possible values for lenses are:
+
+            * "SPOTSIZE": The C1 lens
+            * "INTENSITY": The C2 and - if present - the C3 lens
+            * "CONDENSER": C1, C2, and - if present - the C3 lens
+            * "MINI_CONDENSER": The mini condenser lens
+            * "OBJECTIVE": Objective and mini condenser lens
+            * "PROJECTOR": Projective lenses (DL, IL, P1, P2)
+            * "OBJECTIVE_CONDENSER": Objective and condenser system
+            * "OBJECTIVE_PROJECTOR": Objective and projector system
+            * "ALL": All lenses
+
+        :param mode: What to normalize. If omitted, all lenses are normalized.
+        :type mode: str
+
+        .. versionadded:: 1.0.9
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_projection_sub_mode(self):
+        """
+        Return current projection sub mode.
+
+        .. versionadded:: 1.0.10
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_projection_mode(self):
+        """
+        Return current projection mode.
+
+        .. versionadded:: 1.0.9
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_projection_mode(self, mode):
+        """
+        Set projection mode.
+
+        :param mode: Projection mode: "DIFFRACTION" or "IMAGING"
+        :type mode: str
+
+        .. versionadded:: 1.0.9
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_projection_mode_string(self):
+        """
+        Return description of current projection mode. Possible return values are: "LM", Mi", "SA", "Mh", "LAD", and "D"
+
+        .. versionadded:: 1.0.9
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_magnification_index(self):
+        """
+        Return index of current magnification/camera length.
+
+        .. versionadded:: 1.0.9
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_magnification_index(self, index):
+        """
+        Set magnification / camera length index.
+
+        :param index: Magnification/Camera length index
+        :type index: int
+
+        .. versionadded:: 1.0.9
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_indicated_camera_length(self):
+        """
+        Return (indicated) camera length in meters in diffraction modes.
+        If microscope is in imaging mode, 0 is returned.
+
+        .. versionadded:: 1.0.9
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_indicated_magnification(self):
+        """
+        Return (indicated) magnification in imaging modes.
+        If microscope is in diffraction mode, 0 is returned.
+
+        .. note::
+            On Titan 1.1 software this method returns 0.0 regardless of used mode.
+
+        .. versionadded:: 1.0.9
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_defocus(self):
+        """
+        Return defocus value. The returned value is in arbitrary units.
+        Increasing values go into overfocus direction, negative values into underfocus direction.
+
+        .. note::
+            On Titan 1.1 software the defocus value is the actual defocus relative to the eucentric defocus in meters.
+            The accuracy of this value depends on the accuracy of the calibration within the microscope.
+
+        .. versionadded:: 1.0.9
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_defocus(self, value):
+        """
+        Set defocus value. The value is in arbitrary units. Increasing values go into overfocus direction, negative
+        values into underfocus direction.
+
+        .. note::
+            On Titan 1.1 software the defocus value is the actual defocus relative to the eucentric defocus in meters.
+            The accuracy of this value depends on the accuracy of the calibration within the microscope.
+
+        :param value: Defocus to set
+        :type value: float
+
+        .. versionadded:: 1.0.9
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_objective_excitation(self):
+        """
+        Return excitation of objective lens.
+
+        .. versionadded:: 1.0.9
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_intensity(self):
+        """
+        Return intensity value.
+
+        The returned value is in arbitrary units.
+        Increasing values go into overfocus direction, negative values into underfocus direction.
+
+        .. versionadded:: 1.0.10
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_intensity(self, value):
+        """
+        Set intensity.
+
+        The value is in arbitrary units.
+        Increasing values go into overfocus direction, negative values into underfocus direction.
+
+        :param value: Intensity to set
+        :type value: float
+
+        .. versionadded:: 1.0.10
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_objective_stigmator(self):
+        """
+        Return value of objective shift
+
+        :returns: (x, y) tuple with objective shift value
+
+        .. versionadded:: 1.0.10
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_objective_stigmator(self, value):
+        """
+        Set objective stigmator.
+
+        :param value: (x, y) tuple, as returned for instance by :meth:`get_objective_stigmator`.
+
+        .. versionadded:: 1.0.10
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_condenser_stigmator(self):
+        """
+        Return value of condenser shift
+
+        :returns: (x, y) tuple with condenser shift value
+
+        .. versionadded:: 1.0.10
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_condenser_stigmator(self, value):
+        """
+        Set condenser stigmator.
+
+        :param value: (x, y) tuple, as returned for instance by :meth:`get_condenser_stigmator`.
+
+        .. versionadded:: 1.0.10
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_diffraction_shift(self):
+        """
+        Return value of diffraction shift
+
+        :returns: (x, y) tuple with diffraction shift value
+
+        .. versionadded:: 1.0.10
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_diffraction_shift(self, value):
+        """
+        Set diffraction shift.
+
+        :param value: (x, y) tuple, as returned for instance by :meth:`get_diffraction_shift`.
+
+        .. versionadded:: 1.0.10
+        """
+        raise NotImplementedError
+
+    def get_state(self):
+        """
+        Return a dictionary with state of the microscope.
+
+        .. versionadded:: 1.0.9
+
+        .. versionchanged:: 2.0
+            The method was renamed from get_optics_state() to get_state()
+        """
+        state = {
+            "family": self.get_family(),
+            "microscope_id": self.get_microscope_id(),
+            "temscript_version": self.get_version(),
+            "voltage(kV)": self.get_voltage(),
+            "stage_holder": self.get_stage_holder(),
+            "stage_position": self.get_stage_position(),
+            "image_shift": self.get_image_shift(),
+            "beam_shift": self.get_beam_shift(),
+            "beam_tilt": self.get_beam_tilt(),
+            "projection_sub_mode": self.get_projection_sub_mode(),
+            "projection_mode": self.get_projection_mode(),
+            "projection_mode_string": self.get_projection_mode_string(),
+            "magnification_index": self.get_magnification_index(),
+            "indicated_camera_length": self.get_indicated_camera_length(),
+            "indicated_magnification": self.get_indicated_magnification(),
+            "defocus": self.get_defocus(),
+            "objective_excitation": self.get_objective_excitation(),
+            "intensity": self.get_intensity(),
+            "condenser_stigmator": self.get_condenser_stigmator(),
+            "objective_stigmator": self.get_objective_stigmator(),
+            "diffraction_shift": self.get_diffraction_shift(),
+        }
+        return state
+
+    def get_optics_state(self):
+        """
+        Return a dictionary with state of microscope optics.
+
+        .. versionadded:: 1.0.9
+
+        .. deprecated:: 2.0
+            use :meth:`get_state` instead.
+        """
+        import warnings
+        warnings.warn("Microscope.get_optics_state() is deprecated. Use get_state() instead.", DeprecationWarning)
+        return self.get_state()
