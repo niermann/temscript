@@ -1,8 +1,55 @@
+from enum import Enum
+
 import numpy as np
 from math import pi
 
 from .enums import *
 from .base_microscope import BaseMicroscope, parse_enum
+
+
+def try_update(dest, source, key, cast=None, min_value=None, max_value=None):
+    try:
+        value = source[key]
+    except KeyError:
+        return False
+
+    if callable(cast):
+        try:
+            value = cast(value)
+        except (KeyError, ValueError):
+            return False
+
+    if min_value is not None:
+        value = max(min_value, value)
+    if max_value is not None:
+        value = min(max_value, value)
+
+    dest[key] = value
+    return True
+
+
+def try_update_enum(dest, source, key, enum_type):
+    try:
+        value = source[key]
+    except KeyError:
+        return False
+
+    try:
+        value = parse_enum(enum_type, value)
+    except (KeyError, ValueError):
+        return False
+
+    dest[key] = value
+    return True
+
+
+def unpack_enums(map):
+    result = {}
+    for key, value in map.items():
+        if isinstance(value, Enum):
+            value = value.name
+        result[key] = value
+    return result
 
 
 class NullMicroscope(BaseMicroscope):
@@ -26,17 +73,17 @@ class NullMicroscope(BaseMicroscope):
         self._stage_pos = { 'x': 0.0, 'y': 0.0, 'z': 0.0, 'a': 0.0, 'b': 0.0 }
         self._wait_exposure = bool(wait_exposure) if wait_exposure is not None else True
         self._ccd_param = {
-            "image_size": "FULL",
+            "image_size": AcqImageSize.FULL,
             "exposure(s)": 1.0,
             "binning": 1,
-            "correction": "DEFAULT",
-            "exposure_mode": "NONE",
-            "shutter_mode": "POST_SPECIMEN",
+            "correction": AcqImageCorrection.DEFAULT,
+            "exposure_mode": AcqExposureMode.NONE,
+            "shutter_mode": AcqShutterMode.POST_SPECIMEN,
             "pre_exposure(s)": 0.0,
             "pre_exposure_pause(s)": 0.0
         }
         self._stem_acq_param = {
-            "image_size": "FULL",
+            "image_size": AcqImageSize.FULL,
             "dwell_time(s)": 1e-6,
             "binning": 1,
         }
@@ -124,38 +171,32 @@ class NullMicroscope(BaseMicroscope):
 
     def get_camera_param(self, name):
         if name == "CCD":
-            return dict(self._ccd_param)
+            return unpack_enums(self._ccd_param)
         else:
             raise KeyError("Unknown detector")
+
+    def set_camera_param(self, name, param):
+        if name == "CCD":
+            try_update_enum(self._ccd_param, param, 'image_size', AcqImageSize)
+            try_update(self._ccd_param, param, 'exposure(s)', cast=float, min_value=0.0)
+            try_update(self._ccd_param, param, 'binning', cast=int, min_value=1)
+            try_update_enum(self._ccd_param, param, 'correction', AcqImageCorrection)
+        else:
+            raise TypeError("Unknown detector.")
 
     def get_stem_detector_param(self, name):
         raise KeyError("Unknown detector")
 
-    def get_stem_acquisition_param(self):
-        return dict(self._stem_acq_param)
+    def set_stem_detector_param(self, name, values):
+        raise KeyError("Unknown detector")
 
-    def set_detector_param(self, name, param):
-        if name == "CCD":
-            try:
-                self._ccd_param["image_size"] = parse_enum(AcqImageSize, param["image_size"]).name
-            except Exception:
-                pass
-            try:
-                self._ccd_param["exposure(s)"] = max(0.0, float(param["exposure(s)"]))
-            except Exception:
-                pass
-            try:
-                binning = int(param["exposure(s)"])
-                if binning in self.CCD_BINNINGS:
-                    self._ccd_param["binning"] = binning
-            except Exception:
-                pass
-            try:
-                self._ccd_param["correction"] = parse_enum(AcqImageCorrection, param["correction"]).name
-            except Exception:
-                pass
-        else:
-            raise TypeError("Unknown detector type.")
+    def get_stem_acquisition_param(self):
+        return unpack_enums(self._stem_acq_param)
+
+    def set_stem_acquisition_param(self, param):
+        try_update_enum(self._stem_acq_param, param, 'image_size', AcqImageSize)
+        try_update(self._stem_acq_param, param, 'dwell_time(s)', cast=float, min_value=1e-9)
+        try_update(self._stem_acq_param, param, 'image_size', cast=int, min_value=1)
 
     def acquire(self, *args):
         result = {}
@@ -163,9 +204,9 @@ class NullMicroscope(BaseMicroscope):
         for det in detectors:
             if det == "CCD":
                 size = self.CCD_SIZE // self._ccd_param["binning"]
-                if self._ccd_param["image_size"] == AcqImageSize.HALF.name:
+                if self._ccd_param["image_size"] == AcqImageSize.HALF:
                     size //= 2
-                elif self._ccd_param["image_size"] == AcqImageSize.QUARTER.name:
+                elif self._ccd_param["image_size"] == AcqImageSize.QUARTER:
                     size //= 4
                 if self._wait_exposure:
                     import time

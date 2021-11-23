@@ -1,6 +1,8 @@
 from urllib.parse import quote
 import math
 
+from temscript.base_microscope import set_enum_attr_from_dict, set_attr_from_dict
+
 from .base_microscope import BaseMicroscope, parse_enum, STAGE_AXES
 from .instrument import CCDCamera, GetInstrument, STEMDetector
 from .enums import *
@@ -151,43 +153,20 @@ class Microscope(BaseMicroscope):
             "pre_exposure_pause(s)": param.PreExposurePauseTime
         }
 
-    def _set_camera_param(self, det, values):
-        """Set camera parameters"""
-        info = det.Info
-        param = det.AcqParams
-        # Silently ignore failures
-        try:
-            param.ImageSize = parse_enum(AcqImageSize, values["image_size"])
-        except Exception:
-            pass
-        try:
-            param.ExposureTime = values["exposure(s)"]
-        except Exception:
-            pass
-        try:
-            param.Binning = values["binning"]
-        except Exception:
-            pass
-        try:
-            param.ImageCorrection = parse_enum(AcqImageCorrection, values["correction"])
-        except Exception:
-            pass
-        try:
-            param.ExposureMode = parse_enum(AcqExposureMode, values["exposure_mode"])
-        except Exception:
-            pass
-        try:
-            info.ShutterMode = parse_enum(AcqShutterMode, values["shutter_mode"])
-        except Exception:
-            pass
-        try:
-            param.PreExposureTime = values["pre_exposure(s)"]
-        except Exception:
-            pass
-        try:
-            param.PreExposurePauseTime = values["pre_exposure_pause(s)"]
-        except Exception:
-            pass
+    def set_camera_param(self, name, values):
+        camera = self._find_camera(name)
+        info = camera.Info
+        param = camera.AcqParams
+        set_enum_attr_from_dict(param, 'ImageSize', AcqImageSize, values, 'image_size')
+        set_attr_from_dict(param, 'Binning', values, 'binning')
+        set_enum_attr_from_dict(param, 'ImageCorrection', AcqImageCorrection, values, 'correction')
+        set_enum_attr_from_dict(param, 'ExposureMode', AcqExposureMode, values, 'exposure_mode')
+        set_enum_attr_from_dict(info, 'ShutterMode', AcqShutterMode, values, 'shutter_mode')
+        set_attr_from_dict(param, 'PreExposureTime', values, 'pre_exposure(s)')
+        set_attr_from_dict(param, 'PreExposurePauseTime', values, 'pre_exposure_pause(s)')
+
+        # Set exposure after binning, since it adjusted automatically when binning is set
+        set_attr_from_dict(param, 'ExposureTime', values, 'exposure(s)')
 
     def get_stem_detector_param(self, name):
         det = self._find_stem_detector(name)
@@ -197,6 +176,12 @@ class Microscope(BaseMicroscope):
             "contrast": info.Contrast
         }
 
+    def set_stem_detector_param(self, name, values):
+        det = self._find_stem_detector(name)
+        info = det.Info
+        set_attr_from_dict(info, 'Brightness', values, 'brightness')
+        set_attr_from_dict(info, 'Contrast', values, 'contrast')
+
     def get_stem_acquisition_param(self):
         param = self._tem_acquisition.StemAcqParams
         return {
@@ -205,46 +190,11 @@ class Microscope(BaseMicroscope):
             "dwell_time(s)": param.DwellTime
         }
 
-    def _set_stem_detector_param(self, det, values):
-        """Set STEM detector parameters"""
-        info = det.Info
-        param = det.AcqParams
-        # Silently ignore failures
-        try:
-            info.Brightness = values["brightness"]
-        except Exception:
-            pass
-        try:
-            info.Contrast = values["contrast"]
-        except Exception:
-            pass
-        try:
-            param.ImageSize = parse_enum(AcqImageSize, values["image_size"])
-        except Exception:
-            pass
-        try:
-            param.Binning = values["binning"]
-        except Exception:
-            pass
-        try:
-            param.DwellTime = values["dwelltime(s)"]
-        except Exception:
-            pass
-
-    def set_detector_param(self, name, param):
-        """
-        Set parameters for detector `name`. The parameters should be given as a dictionary.
-        Allowed keys are described in the :meth:`get_detector_param` method.
-        If setting a parameter fails, no error is given.
-        """
-        from ._instrument_com import CCDCamera, STEMDetector
-        det = self._find_detector(name)
-        if isinstance(det, CCDCamera):
-            self._set_camera_param(det, param)
-        elif isinstance(det, STEMDetector):
-            self._set_stem_detector_param(det, param)
-        else:
-            raise TypeError("Unknown detector type.")
+    def set_stem_acquisition_param(self, values):
+        param = self._tem_acquisition.StemAcqParams
+        set_enum_attr_from_dict(param, 'ImageSize', AcqImageSize, values, 'image_size')
+        set_attr_from_dict(param, 'Binning', values, 'binning')
+        set_attr_from_dict(param, 'DwellTime', values, 'dwell_time(s)')
 
     def acquire(self, *args):
         self._tem_acquisition.RemoveAllAcqDevices()

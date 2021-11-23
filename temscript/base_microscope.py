@@ -2,13 +2,60 @@ from abc import ABC, abstractmethod
 
 
 def parse_enum(enum_type, item):
-    """Try to parse 'item' (string or integer) to enum 'type'"""
+    """Try to parse *item* (string or integer) to enum *type*"""
     if isinstance(item, enum_type):
         return item
     try:
         return enum_type[item]
     except KeyError:
         return enum_type(item)
+
+
+def set_attr_from_dict(obj, attr_name, map, key):
+    """
+    Tries to set attribute *attr_name* of object *obj* with the value of *key* in the dictionary *map*.
+    If no such *key* is in the dict, nothing is done. Any TypeErrors or ValueErrors are silently ignored.
+
+    Returns true is *key* was present in *map* and the attribute was successfully set. Otherwise False is returned.
+    """
+    try:
+        value = map[key]
+    except KeyError:
+        return False
+
+    try:
+        setattr(obj, attr_name, value)
+    except (TypeError, ValueError):
+        return False
+
+    return True
+
+
+def set_enum_attr_from_dict(obj, attr_name, enum_type, map, key):
+    """
+    Tries to set enum attribute *attr_name* of object *obj* with the value of *key* in the dictionary *map*.
+    The value is parsed to the *enum_type* (using `parse_enum` before the attribute is set).
+    If no such *key* is in the dict, or `parse_enum` fails, nothing is done.
+    Any TypeErrors or ValueErrors are silently ignored.
+
+    Returns true is *key* was present in *map* and the attribute was successfully set. Otherwise False is returned.
+    """
+    try:
+        value = map[key]
+    except KeyError:
+        return False
+
+    try:
+        value = parse_enum(enum_type, value)
+    except (KeyError, ValueError):
+        return False
+
+    try:
+        setattr(obj, attr_name, value)
+    except (TypeError, ValueError):
+        return False
+
+    return True
 
 
 # Allowed stage axes
@@ -179,7 +226,6 @@ class BaseMicroscope(ABC):
         import warnings
         warnings.warn("Microscope.get_detectors() is deprecated. Please use get_stem_detectors() or get_cameras() "
                       "instead.", DeprecationWarning)
-
         result = {}
         result.update(self.get_cameras())
         result.update(self.get_stem_detectors())
@@ -206,6 +252,19 @@ class BaseMicroscope(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def set_camera_param(self, name, values):
+        """
+        Set parameters for camera *name*. The parameters should be given as a dictionary.
+        Allowed keys are described in the :meth:`get_camera_param` method.
+        If setting a parameter fails, no error is raised.
+
+        :raises KeyError: If an unknown camera *name* is used.
+
+        .. versionadded:: 2.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def get_stem_detector_param(self, name):
         """
         Return dictionary with parameters for detector *name*.
@@ -214,6 +273,19 @@ class BaseMicroscope(ABC):
 
             * "brightness": Brightness settings
             * "contrast": Contrast setting
+
+        .. versionadded:: 2.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_stem_detector_param(self, name, values):
+        """
+        Set parameters for STEM detector *name*. The parameters should be given as a dictionary.
+        Allowed keys are described in the :meth:`get_stem_detector_param` method.
+        If setting a parameter fails, no error is raised. Unknown parameters are ignored.
+
+        :raises KeyError: If an unknown detector *name* is used.
 
         .. versionadded:: 2.0
         """
@@ -229,6 +301,17 @@ class BaseMicroscope(ABC):
             * "image_size": Size of image (see :class:`AcqImageSize`): "FULL", "HALF", ...
             * "binning": Binning
             * "dwell_time(s)": Dwell time in seconds
+
+        .. versionadded:: 2.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_stem_acquisition_param(self, values):
+        """
+        Set parameters for STEM acquisition. The parameters should be given as a dictionary.
+        Allowed keys are described in the :meth:`get_stem_acquisition_param` method.
+        If setting a parameter fails, no error is raised. Unknown parameters are ignored.
 
         .. versionadded:: 2.0
         """
@@ -264,6 +347,9 @@ class BaseMicroscope(ABC):
             Use the methods :meth:`get_camera_param`,  :meth:`get_stem_param`, or :meth:`get_stem_acquisition_param`
             instead.
         """
+        import warnings
+        warnings.warn("Microscope.get_detector_param() is deprecated. Please use get_stem_detector_param() or "
+                      "get_camera_param() instead.", DeprecationWarning)
         try:
             param = self.get_camera_param(name)
         except KeyError:
@@ -273,6 +359,36 @@ class BaseMicroscope(ABC):
                 raise KeyError("No detector with name %s" % name)
             else:
                 param.update(self.get_stem_acquisition_param())
+        return param
+
+    def set_detector_param(self, name, param):
+        """
+        Set parameters for detector *name*. The parameters should be given as a dictionary.
+        Allowed keys are described in the :meth:`get_detector_param` method.
+        If setting a parameter fails, no error is given. Unknown parameters are ignored.
+
+        .. versionchanged:: 2.0
+            Dwell time can be set by parameters 'dwelltime(s)' and 'dwell_time(s)'.
+
+        .. deprecated:: 2.0
+            Use the methods :meth:`set_camera_param`, :meth:`set_stem_detector_param`,
+            or :meth:`set_stem_acquisition_param` instead.
+        """
+        import warnings
+        warnings.warn("Microscope.set_detector_param() is deprecated. Please use set_stem_detector_param(),"
+                      "set_camera_param(), or set_stem_acquisition_param() instead.", DeprecationWarning)
+        try:
+            param = self.set_camera_param(name, param)
+        except KeyError:
+            try:
+                param = self.set_stem_detector_param(name, param)
+            except KeyError:
+                raise KeyError("No detector with name %s" % name)
+            else:
+                if ('dwelltime(s)' in param) and not ('dwell_time(s)' in param):
+                    param = dict(param)
+                    param['dwell_time(s)'] = param.pop('dwelltime(s)')
+                self.set_stem_acquisition_param(param)
         return param
 
     @abstractmethod

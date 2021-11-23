@@ -5,7 +5,7 @@ if __name__ == '__main__':
     # for testing on the Titan microscope PC
     print("Starting Test...")
 
-    microscope = NullMicroscope()
+    microscope = Microscope()
     print("Microscope.get_family():", microscope.get_family())
     print("Microscope.get_microscope_id():", microscope.get_microscope_id())
     print("Microscope.get_version():", microscope.get_version())
@@ -18,12 +18,13 @@ if __name__ == '__main__':
 
     cameras = microscope.get_cameras()
     print("Microscope.get_cameras():", cameras)
-#    for name in cameras.values():
-#        print("Microscope.get_camera_param(%s):" % name, microscope.get_camera_param(name))
+    for name in cameras.keys():
+        print("Microscope.get_camera_param(%s):" % name, microscope.get_camera_param(name))
     detectors = microscope.get_stem_detectors()
     print("Microscope.get_stem_detectors():", detectors)
-#    for name in detectors.values():
-#        print("Microscope.get_stem_detector_param(%s):" % name, microscope.get_stem_detector_param(name))
+    for name in detectors.keys():
+        print("Microscope.get_stem_detector_param(%s):" % name, microscope.get_stem_detector_param(name))
+    print("Microscope.get_stem_acquisition_param():", microscope.get_stem_acquisition_param())
 
     print("Microscope.get_image_shift():", microscope.get_image_shift())
     print("Microscope.get_beam_shift():", microscope.get_beam_shift())
