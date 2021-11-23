@@ -1,7 +1,7 @@
 /dist
 /build
-_temscript/stdscript.dll
+/temscript.egg-info
+/MANIFEST
 docs/_build
 .idea
-*.pyc
 __pycache__
