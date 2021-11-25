@@ -164,9 +164,11 @@ The methods and classes directly represent the COM objects exposed by the *Scrip
 
         (read/write) *bool* Enable intensity zoom
 
-    .. attribute::
+    .. attribute:: IntensityLimitEnabled
 
         (read/write) *bool* Enable Intensity limit
+
+        .. note:: Reading this property raises an exception (E_UNEXPECTED, "Catastrophic failure") on Titan 1.1
 
     .. attribute:: Shift
 
@@ -246,6 +248,10 @@ The methods and classes directly represent the COM objects exposed by the *Scrip
         .. versionchanged:: 2.0
             Returns *ProjectionMode* instance instead of integer.
 
+        .. note::
+            On Titan 1.1 software changing the mode from IMAGING to DIFFRACTION and back again changes the
+            magnification. See :ref:`_Restrictions`.
+
     .. attribute:: SubMode
 
         (read) *ProjectionSubMode* SubMode
@@ -268,6 +274,9 @@ The methods and classes directly represent the COM objects exposed by the *Scrip
 
         (read) *float* Magnification as seen be plate camera.
         Use :attr:`MagnificationIndex` to change.
+
+        .. note::
+            On Titan 1.1 software this property reads 0.0 regardless of used mode. See :ref:`_Restrictions`.
 
     .. attribute:: MagnificationIndex
 
@@ -625,9 +634,16 @@ Acquisition related classes
 
         (read/write) *float* Exposure time (seconds)
 
+        .. note::
+            On Titan 1.1 software images acquired after setting this property might not be acquired with the new
+            setting, even though this property reflects the new value when read. See :ref:`_Restrictions`.
+
     .. attribute:: Binning
 
         (read/write) *int* Binning value
+
+        .. note::
+            On Titan 1.1 software setting this property also changes the exposure time. See :ref:`_Restrictions`.
 
     .. attribute:: ImageCorrection
 

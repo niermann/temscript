@@ -8,6 +8,7 @@ Contents:
    
     microscope
     instrument
+    restrictions
    
 Introduction:
 =============

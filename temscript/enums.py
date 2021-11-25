@@ -7,6 +7,21 @@ class DetectorType(IntEnum):
     STEM_DETECTOR = 2
 
 
+class TEMScriptingError(IntEnum):
+    E_NOT_OK = -2147155969              # 0x8004ffff
+    E_VALUE_CLIP = -2147155970          # 0x8004fffe
+    E_OUT_OF_RANGE = -2147155971        # 0x8004fffd
+    E_NOT_IMPLEMENTED = -2147155972     # 0x8004fffc
+    # The following are also mentioned in the manual
+    E_UNEXPECTED = -2147418113          # 0x8000FFFF
+    E_NOTIMPL = -2147467263             # 0x80004001
+    E_INVALIDARG = -2147024809          # 0x80070057
+    E_ABORT = -2147467260               # 0x80004004
+    E_FAIL = -2147467259                # 0x80004005
+    E_ACCESSDENIED = -2147024891        # 0x80070005
+
+
+
 class VacuumStatus(IntEnum):
     UNKNOWN = 1
     OFF = 2
