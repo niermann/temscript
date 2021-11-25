@@ -248,6 +248,10 @@ class BaseMicroscope(ABC):
             * "pre_exposure_pause(s)": Pre exposure pause time in seconds
 
         .. versionadded:: 2.0
+
+        .. note::
+            * On Titan 1.1 software the "exposure_time(s)" value might not reflect the correct exposure
+            time. See :ref:`_Restrictions`.
         """
         raise NotImplementedError
 
@@ -261,6 +265,12 @@ class BaseMicroscope(ABC):
         :raises KeyError: If an unknown camera *name* is used.
 
         .. versionadded:: 2.0
+
+        .. note::
+            * On Titan 1.1 software setting the "binning" property also changes the exposure time.
+            * On Titan 1.1 software images acquired after setting the "exposure_time(s)" property might not be acquired
+            with the new setting, even though this property reflects the new value when read.
+            See :ref:`_Restrictions`.
         """
         raise NotImplementedError
 
@@ -517,6 +527,10 @@ class BaseMicroscope(ABC):
         :type mode: str
 
         .. versionadded:: 1.0.9
+
+        .. note::
+            On Titan 1.1 software changing the mode from IMAGING to DIFFRACTION and back again changes the
+            magnification. See :ref:`_Restrictions`.
         """
         raise NotImplementedError
 
@@ -567,7 +581,7 @@ class BaseMicroscope(ABC):
         If microscope is in diffraction mode, 0 is returned.
 
         .. note::
-            On Titan 1.1 software this method returns 0.0 regardless of used mode.
+            On Titan 1.1 software this method returns 0.0 regardless of used mode. See :ref:`_Restrictions`.
 
         .. versionadded:: 1.0.9
         """
