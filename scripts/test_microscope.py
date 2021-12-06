@@ -26,6 +26,14 @@ if __name__ == '__main__':
         print("Microscope.get_stem_detector_param(%s):" % name, microscope.get_stem_detector_param(name))
     print("Microscope.get_stem_acquisition_param():", microscope.get_stem_acquisition_param())
 
+    # Test invalid camera
+    try:
+        microscope.get_camera_param('ThereIsNoCameraWithThisName')
+    except KeyError:
+        print("Microscope.get_camera_param() fails with KeyError: YES")
+    else:
+        print("Microscope.get_camera_param() fails with KeyError: NO")
+
     print("Microscope.get_image_shift():", microscope.get_image_shift())
     print("Microscope.get_beam_shift():", microscope.get_beam_shift())
     print("Microscope.get_beam_tilt():", microscope.get_beam_tilt())

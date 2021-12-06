@@ -1,4 +1,3 @@
-from urllib.parse import quote
 import math
 
 from temscript.base_microscope import set_enum_attr_from_dict, set_attr_from_dict
@@ -96,7 +95,7 @@ class Microscope(BaseMicroscope):
         for cam in self._tem_acquisition.Cameras:
             info = cam.Info
             param = cam.AcqParams
-            name = quote(info.Name)
+            name = info.Name
             cameras[name] = {
                 "type": "CAMERA",
                 "height": info.Height,
@@ -113,7 +112,7 @@ class Microscope(BaseMicroscope):
         detectors = {}
         for stem in self._tem_acquisition.Detectors:
             info = stem.Info
-            name = quote(info.Name)
+            name = info.Name
             detectors[name] = {
                 "type": "STEM_DETECTOR",
                 "binnings": [int(b) for b in info.Binnings],
@@ -125,7 +124,7 @@ class Microscope(BaseMicroscope):
         if isinstance(name, CCDCamera):
             return name
         for cam in self._tem_acquisition.Cameras:
-            if quote(cam.Info.Name) == name:
+            if cam.Info.Name == name:
                 return cam
         raise KeyError("No camera with name %s" % name)
 
@@ -134,7 +133,7 @@ class Microscope(BaseMicroscope):
         if isinstance(name, STEMDetector):
             return name
         for stem in self._tem_acquisition.Detectors:
-            if quote(stem.Info.Name) == name:
+            if stem.Info.Name == name:
                 return stem
         raise KeyError("No STEM detector with name %s" % name)
 
@@ -206,7 +205,7 @@ class Microscope(BaseMicroscope):
         images = self._tem_acquisition.AcquireImages()
         result = {}
         for img in images:
-            result[quote(img.Name)] = img.Array
+            result[img.Name] = img.Array
         return result
 
     def get_image_shift(self):

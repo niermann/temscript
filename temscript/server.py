@@ -2,21 +2,11 @@
 import numpy as np
 import json
 import traceback
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import urlparse, parse_qs, quote, unquote
+from io import BytesIO
 
-from .microscope import STAGE_AXES
-
-# Get imports from library
-try:
-    # Python 3.X
-    from http.server import BaseHTTPRequestHandler, HTTPServer
-    from urllib.parse import urlparse, parse_qs, quote
-    from io import BytesIO
-except ImportError:
-    # Python 2.X
-    from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-    from urlparse import urlparse, parse_qs
-    from urllib import pathname2url as quote
-    from cStringIO import StringIO as BytesIO
+from .base_microscope import STAGE_AXES, parse_enum
 
 
 # Numpy array encoding JSON encoder
@@ -57,14 +47,6 @@ def _gzipencode(content):
     f.write(content)
     f.close()
     return out.getvalue()
-
-
-def _parse_enum(type, item):
-    """Try to parse 'item' (string or integer) to enum 'type'"""
-    try:
-        return type[item]
-    except:
-        return type(item)
 
 
 class MicroscopeHandler(BaseHTTPRequestHandler):
@@ -119,6 +101,12 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             response = self.server.microscope.get_stage_limits()
         elif endpoint == "detectors":
             response = self.server.microscope.get_detectors()
+        elif endpoint == "cameras":
+            response = self.server.microscope.get_cameras()
+        elif endpoint == "stem_detectors":
+            response = self.server.microscope.get_stem_detectors()
+        elif endpoint == "stem_acquisition_param":
+            response = self.server.microscope.get_stem_acquisition_param()
         elif endpoint == "image_shift":
             response = self.server.microscope.get_image_shift()
         elif endpoint == "beam_shift":
@@ -149,12 +137,26 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             response = self.server.microscope.get_condenser_stigmator()
         elif endpoint == "diffraction_shift":
             response = self.server.microscope.get_diffraction_shift()
-        elif endpoint == "optics_state":
-            response = self.server.microscope.get_optics_state()
+        elif (endpoint == "optics_state") or (endpoint == "state"):
+            response = self.server.microscope.get_state()
         elif endpoint.startswith("detector_param/"):
             try:
-                name = endpoint[15:]
+                name = unquote(endpoint[15:])
                 response = self.server.microscope.get_detector_param(name)
+            except KeyError:
+                self.send_error(404, 'Unknown detector: %s' % self.path)
+                return
+        elif endpoint.startswith("camera_param/"):
+            try:
+                name = unquote(endpoint[13:])
+                response = self.server.microscope.get_camera_param(name)
+            except KeyError:
+                self.send_error(404, 'Unknown camera: %s' % self.path)
+                return
+        elif endpoint.startswith("stem_detector_param/"):
+            try:
+                name = unquote(endpoint[20:])
+                response = self.server.microscope.get_stem_detector_param(name)
             except KeyError:
                 self.send_error(404, 'Unknown detector: %s' % self.path)
                 return
@@ -189,6 +191,29 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             except KeyError:
                 pass
             self.server.microscope.set_stage_position(pos, method=method)
+        elif endpoint.startswith("camera_param/"):
+            try:
+                name = unquote(endpoint[13:])
+                response = self.server.microscope.set_camera_param(name, decoded_content)
+            except KeyError:
+                self.send_error(404, 'Unknown detector: %s' % self.path)
+                return
+        elif endpoint.startswith("stem_detector_param/"):
+            try:
+                name = unquote(endpoint[20:])
+                response = self.server.microscope.set_stem_detector_param(name, decoded_content)
+            except KeyError:
+                self.send_error(404, 'Unknown detector: %s' % self.path)
+                return
+        elif endpoint == "stem_acquisition_param":
+            self.server.microscope.set_stem_acquisition_param(decoded_content)
+        elif endpoint.startswith("detector_param/"):
+            try:
+                name = unquote(endpoint[15:])
+                response = self.server.microscope.set_detector_param(name, decoded_content)
+            except KeyError:
+                self.send_error(404, 'Unknown detector: %s' % self.path)
+                return
         elif endpoint == "image_shift":
             self.server.microscope.set_image_shift(decoded_content)
         elif endpoint == "beam_shift":
@@ -209,13 +234,6 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             self.server.microscope.set_objective_stigmator(decoded_content)
         elif endpoint == "condenser_stigmator":
             self.server.microscope.set_condenser_stigmator(decoded_content)
-        elif endpoint.startswith("detector_param/"):
-            try:
-                name = endpoint[15:]
-                response = self.server.microscope.set_detector_param(name, decoded_content)
-            except KeyError:
-                self.send_error(404, 'Unknown detector: %s' % self.path)
-                return
         elif endpoint == "normalize":
             mode = decoded_content
             try:
@@ -258,46 +276,15 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
 
 
 class MicroscopeServer(HTTPServer, object):
-    def __init__(self, *args, **kw):
-        microscope_factory = kw.pop("microscope_factory", None)
+    def __init__(self, server_address=('', 8080), microscope_factory=None):
+        """
+        Run a microscope server.
+
+        :param server_address: (address, port) tuple
+        :param microscope_factory: callable creating the BaseMicroscope instance to use
+        """
         if microscope_factory is None:
             from .microscope import Microscope
             microscope_factory = Microscope
-        super(MicroscopeServer, self).__init__(*args, **kw)
         self.microscope = microscope_factory()
-
-
-def run_server(argv=None, microscope_factory=None):
-    """
-    Main program for running the server
-
-    :param argv: Arguments
-    :type argv: List of str (see sys.argv)
-    :param microscope_factory: Factory function for creation of microscope
-    :type microscope_factory: callable without arguments
-    :returns: Exit code
-    """
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--port", type=int, default=8080, help="Specify port on which the server is listening")
-    parser.add_argument("--host", type=str, default='', help="Specify host address on which the the server is listening")
-    args = parser.parse_args(argv)
-
-    try:
-        # Create a web server and define the handler to manage the incoming request
-        server = MicroscopeServer((args.host, args.port), MicroscopeHandler, microscope_factory=microscope_factory)
-        print("Started httpserver on host '%s' port %d." % (args.host, args.port))
-        print("Press Ctrl+C to stop server.")
-
-        # Wait forever for incoming htto requests
-        server.serve_forever()
-
-    except KeyboardInterrupt:
-        print('Ctrl+C received, shutting down the web server')
-        server.socket.close()
-
-    return 0
-
-
-if __name__ == '__main__':
-    run_server()
+        super(MicroscopeServer, self).__init__(server_address, MicroscopeHandler)
