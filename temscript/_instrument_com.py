@@ -331,13 +331,13 @@ class STEMDetector(IUnknown):
     @property
     def AcqParams(self):
         import warnings
-        warnings.warn("The attribute AcqParams of STEMDetector instances is deprecated. Use Acquisition.StemAcqParams instead.", warnings.DeprecationWarning)
+        warnings.warn("The attribute AcqParams of STEMDetector instances is deprecated. Use Acquisition.StemAcqParams instead.", DeprecationWarning)
         return self._acquisition.StemAcqParams
 
     @AcqParams.setter
     def AcqParams(self, value):
         import warnings
-        warnings.warn("The attribute AcqParams of STEMDetector instances is deprecated. Use Acquisition.StemAcqParams instead.", warnings.DeprecationWarning)
+        warnings.warn("The attribute AcqParams of STEMDetector instances is deprecated. Use Acquisition.StemAcqParams instead.", DeprecationWarning)
         self._acquisition.StemAcqParams = value
 
 

@@ -20,7 +20,13 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
                       "defocus", "intensity", "diffraction_shift", "objective_stigmator", "condenser_stigmator",
                       "screen_position")
 
+    def get_microscope(self):
+        """Return microscope object from server."""
+        assert isinstance(self.server, MicroscopeServer)
+        return self.server.microscope
+    
     def get_accept_types(self):
+        """Return list of accepted encodings."""
         return [x.split(';', 1)[0].strip() for x in self.headers.get("Accept", "").split(",")]
 
     def build_response(self, response):
@@ -62,19 +68,19 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
     def do_GET_V1(self, endpoint, query):
         """Handle V1 GET requests"""
         if endpoint in self.GET_V1_FORWARD:
-            response = getattr(self.server.microscope, 'get_' + endpoint)()
+            response = getattr(self.get_microscope(), 'get_' + endpoint)()
         elif endpoint.startswith("detector_param/"):
             name = unquote(endpoint[15:])
-            response = self.server.microscope.get_detector_param(name)
+            response = self.get_microscope().get_detector_param(name)
         elif endpoint.startswith("camera_param/"):
             name = unquote(endpoint[13:])
-            response = self.server.microscope.get_camera_param(name)
+            response = self.get_microscope().get_camera_param(name)
         elif endpoint.startswith("stem_detector_param/"):
             name = unquote(endpoint[20:])
-            response = self.server.microscope.get_stem_detector_param(name)
+            response = self.get_microscope().get_stem_detector_param(name)
         elif endpoint == "acquire":
             detectors = tuple(query.get("detectors", ()))
-            response = self.server.microscope.acquire(*detectors)
+            response = self.get_microscope().acquire(*detectors)
             if MIME_TYPE_PICKLE not in self.get_accept_types():
                 response = {key: pack_array(value) for key, value in response.items()}
         else:
@@ -92,28 +98,28 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
         # Check for known endpoints
         response = None
         if endpoint in self.PUT_V1_FORWARD:
-            response = getattr(self.server.microscope, 'set_' + endpoint)(decoded_content)
+            response = getattr(self.get_microscope(), 'set_' + endpoint)(decoded_content)
         elif endpoint == "stage_position":
             method = str(query["method"][0]) if "method" in query else None
             speed = float(query["speed"][0]) if "speed" in query else None
             pos = dict((k, decoded_content[k]) for k in decoded_content.keys() if k in STAGE_AXES)
-            self.server.microscope.set_stage_position(pos, method=method, speed=speed)
+            self.get_microscope().set_stage_position(pos, method=method, speed=speed)
         elif endpoint.startswith("camera_param/"):
             name = unquote(endpoint[13:])
             ignore_errors = bool(query.get("ignore_errors", [False])[0])
-            response = self.server.microscope.set_camera_param(name, decoded_content, ignore_errors=ignore_errors)
+            response = self.get_microscope().set_camera_param(name, decoded_content, ignore_errors=ignore_errors)
         elif endpoint.startswith("stem_detector_param/"):
             name = unquote(endpoint[20:])
             ignore_errors = bool(query.get("ignore_errors", [False])[0])
-            response = self.server.microscope.set_stem_detector_param(name, decoded_content, ignore_errors=ignore_errors)
+            response = self.get_microscope().set_stem_detector_param(name, decoded_content, ignore_errors=ignore_errors)
         elif endpoint == "stem_acquisition_param":
             ignore_errors = bool(query.get("ignore_errors", [False])[0])
-            response = self.server.microscope.set_stem_acquisition_param(decoded_content, ignore_errors=ignore_errors)
+            response = self.get_microscope().set_stem_acquisition_param(decoded_content, ignore_errors=ignore_errors)
         elif endpoint.startswith("detector_param/"):
             name = unquote(endpoint[15:])
-            response = self.server.microscope.set_detector_param(name, decoded_content)
+            response = self.get_microscope().set_detector_param(name, decoded_content)
         elif endpoint == "normalize":
-            self.server.microscope.normalize(decoded_content)
+            self.get_microscope().normalize(decoded_content)
         else:
             raise KeyError("Unknown endpoint: '%s'" % endpoint)
         return response

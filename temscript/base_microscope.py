@@ -192,13 +192,13 @@ class BaseMicroscope(ABC):
         if "speed" in pos:
             import warnings
             warnings.warn("Usage of the 'speed' key in the 'pos' dictionary is deprecated since version 2.0."
-                          "Use the 'speed' keyword instead.")
+                          "Use the 'speed' keyword instead.", DeprecationWarning)
             if speed is None:
                 speed = pos.pop('speed')
         if "method" in pos:
             import warnings
             warnings.warn("Usage of the 'method' key in the 'pos' dictionary is deprecated since version 2.0."
-                          "Use the 'method' keyword instead.")
+                          "Use the 'method' keyword instead.", DeprecationWarning)
             if method is None:
                 method = pos.pop('method')
         if method is None:
