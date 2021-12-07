@@ -115,7 +115,7 @@ class RemoteMicroscope(BaseMicroscope):
 
         ..see :: :meth:`_request`
         """
-        if body:
+        if body is not None:
             headers = dict(headers) if headers is not None else dict()
             headers["Content-Type"] = MIME_TYPE_JSON
             encoder = ExtendedJsonEncoder()
