@@ -58,8 +58,7 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
                       "condenser_stigmator", "diffraction_shift", 'optics_state', 'state')
 
     PUT_V1_FORWARD = ("image_shift", "beam_shift", "beam_tilt", "projection_mode", "magnification_index",
-                      "defocus", "intensity", "diffraction_shift", "objective_stigmator", "condenser_stigmator",
-                      "stem_acquisition_param")
+                      "defocus", "intensity", "diffraction_shift", "objective_stigmator", "condenser_stigmator")
 
     def build_response(self, response):
         """Encode response and send to client"""
@@ -136,10 +135,15 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             self.server.microscope.set_stage_position(pos, method=method, speed=speed)
         elif endpoint.startswith("camera_param/"):
             name = unquote(endpoint[13:])
-            response = self.server.microscope.set_camera_param(name, decoded_content)
+            ignore_errors = bool(query.get("ignore_errors", [False])[0])
+            response = self.server.microscope.set_camera_param(name, decoded_content, ignore_errors=ignore_errors)
         elif endpoint.startswith("stem_detector_param/"):
             name = unquote(endpoint[20:])
-            response = self.server.microscope.set_stem_detector_param(name, decoded_content)
+            ignore_errors = bool(query.get("ignore_errors", [False])[0])
+            response = self.server.microscope.set_stem_detector_param(name, decoded_content, ignore_errors=ignore_errors)
+        elif endpoint == "stem_acquisition_param":
+            ignore_errors = bool(query.get("ignore_errors", [False])[0])
+            response = self.server.microscope.set_stem_acquisition_param(decoded_content, ignore_errors=ignore_errors)
         elif endpoint.startswith("detector_param/"):
             name = unquote(endpoint[15:])
             response = self.server.microscope.set_detector_param(name, decoded_content)

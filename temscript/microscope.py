@@ -151,21 +151,24 @@ class Microscope(BaseMicroscope):
             "pre_exposure_pause(s)": param.PreExposurePauseTime
         }
 
-    def set_camera_param(self, name, values):
-        # TODO: Explicit errors
+    def set_camera_param(self, name, values, ignore_errors=False):
         camera = self._find_camera(name)
+        values = dict(values)
         info = camera.Info
         param = camera.AcqParams
-        set_enum_attr_from_dict(param, 'ImageSize', AcqImageSize, values, 'image_size')
-        set_attr_from_dict(param, 'Binning', values, 'binning')
-        set_enum_attr_from_dict(param, 'ImageCorrection', AcqImageCorrection, values, 'correction')
-        set_enum_attr_from_dict(param, 'ExposureMode', AcqExposureMode, values, 'exposure_mode')
-        set_enum_attr_from_dict(info, 'ShutterMode', AcqShutterMode, values, 'shutter_mode')
-        set_attr_from_dict(param, 'PreExposureTime', values, 'pre_exposure(s)')
-        set_attr_from_dict(param, 'PreExposurePauseTime', values, 'pre_exposure_pause(s)')
+        set_enum_attr_from_dict(param, 'ImageSize', AcqImageSize, values, 'image_size', ignore_errors=ignore_errors)
+        set_attr_from_dict(param, 'Binning', values, 'binning', ignore_errors=ignore_errors)
+        set_enum_attr_from_dict(param, 'ImageCorrection', AcqImageCorrection, values, 'correction', ignore_errors=ignore_errors)
+        set_enum_attr_from_dict(param, 'ExposureMode', AcqExposureMode, values, 'exposure_mode', ignore_errors=ignore_errors)
+        set_enum_attr_from_dict(info, 'ShutterMode', AcqShutterMode, values, 'shutter_mode', ignore_errors=ignore_errors)
+        set_attr_from_dict(param, 'PreExposureTime', values, 'pre_exposure(s)', ignore_errors=ignore_errors)
+        set_attr_from_dict(param, 'PreExposurePauseTime', values, 'pre_exposure_pause(s)', ignore_errors=ignore_errors)
 
         # Set exposure after binning, since it adjusted automatically when binning is set
-        set_attr_from_dict(param, 'ExposureTime', values, 'exposure(s)')
+        set_attr_from_dict(param, 'ExposureTime', values, 'exposure(s)', ignore_errors=ignore_errors)
+
+        if not ignore_errors and values:
+            raise ValueError("Unknown keys in parameter dictionary.")
 
     def get_stem_detector_param(self, name):
         det = self._find_stem_detector(name)
@@ -175,12 +178,15 @@ class Microscope(BaseMicroscope):
             "contrast": info.Contrast
         }
 
-    def set_stem_detector_param(self, name, values):
-        # TODO: Explicit errors
+    def set_stem_detector_param(self, name, values, ignore_errors=False):
         det = self._find_stem_detector(name)
+        values = dict(values)
         info = det.Info
         set_attr_from_dict(info, 'Brightness', values, 'brightness')
         set_attr_from_dict(info, 'Contrast', values, 'contrast')
+
+        if not ignore_errors and values:
+            raise ValueError("Unknown keys in parameter dictionary.")
 
     def get_stem_acquisition_param(self):
         param = self._tem_acquisition.StemAcqParams
@@ -190,12 +196,15 @@ class Microscope(BaseMicroscope):
             "dwell_time(s)": param.DwellTime
         }
 
-    def set_stem_acquisition_param(self, values):
-        # TODO: Explicit errors
+    def set_stem_acquisition_param(self, values, ignore_errors=False):
+        values = dict(values)
         param = self._tem_acquisition.StemAcqParams
-        set_enum_attr_from_dict(param, 'ImageSize', AcqImageSize, values, 'image_size')
-        set_attr_from_dict(param, 'Binning', values, 'binning')
-        set_attr_from_dict(param, 'DwellTime', values, 'dwell_time(s)')
+        set_enum_attr_from_dict(param, 'ImageSize', AcqImageSize, values, 'image_size', ignore_errors=ignore_errors)
+        set_attr_from_dict(param, 'Binning', values, 'binning', ignore_errors=ignore_errors)
+        set_attr_from_dict(param, 'DwellTime', values, 'dwell_time(s)', ignore_errors=ignore_errors)
+
+        if not ignore_errors and values:
+            raise ValueError("Unknown keys in parameter dictionary.")
 
     def acquire(self, *args):
         self._tem_acquisition.RemoveAllAcqDevices()

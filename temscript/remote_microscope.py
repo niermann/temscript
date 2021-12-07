@@ -179,20 +179,27 @@ class RemoteMicroscope(BaseMicroscope):
     def get_camera_param(self, name):
         return self._request("GET", "/v1/camera_param/" + quote_plus(name))[1]
 
-    def set_camera_param(self, name, values):
-        self._request_with_json_body("PUT", "/v1/camera_param/" + quote_plus(name), values)
+    def set_camera_param(self, name, values, ignore_errors=None):
+        query={}
+        if ignore_errors is not None:
+            query = {'ignore_errors': int(ignore_errors)}
+        self._request_with_json_body("PUT", "/v1/camera_param/" + quote_plus(name), values, query=query)
 
     def get_stem_detector_param(self, name):
         return self._request("GET", "/v1/stem_detector_param/" + quote_plus(name))[1]
 
-    def set_stem_detector_param(self, name, values):
-        self._request_with_json_body("PUT", "/v1/stem_detector_param/" + quote_plus(name), values)
+    def set_stem_detector_param(self, name, values, ignore_errors=None):
+        if ignore_errors is not None:
+            query = {'ignore_errors': int(ignore_errors)}
+        self._request_with_json_body("PUT", "/v1/stem_detector_param/" + quote_plus(name), values, query=query)
 
     def get_stem_acquisition_param(self):
         return self._request("GET", "/v1/stem_acquisition_param")[1]
 
-    def set_stem_acquisition_param(self, values):
-        self._request_with_json_body("PUT", "/v1/stem_acquisition_param", values)
+    def set_stem_acquisition_param(self, values, ignore_errors=None):
+        if ignore_errors is not None:
+            query = {'ignore_errors': int(ignore_errors)}
+        self._request_with_json_body("PUT", "/v1/stem_acquisition_param", values, query=query)
 
     allowed_types = {"INT8", "INT16", "INT32", "INT64", "UINT8", "UINT16", "UINT32", "UINT64", "FLOAT32", "FLOAT64"}
     allowed_endianness = {"LITTLE", "BIG"}

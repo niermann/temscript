@@ -11,49 +11,58 @@ def parse_enum(enum_type, item):
         return enum_type(item)
 
 
-def set_attr_from_dict(obj, attr_name, map, key):
+def set_attr_from_dict(obj, attr_name, map, key, ignore_errors=False):
     """
     Tries to set attribute *attr_name* of object *obj* with the value of *key* in the dictionary *map*.
-    If no such *key* is in the dict, nothing is done. Any TypeErrors or ValueErrors are silently ignored.
+    The item *key* is removed from the *map*.
+    If no such *key* is in the dict, nothing is done.
+    Any TypeErrors or ValueErrors are silently ignored, if *ignore_errors is set.
 
     Returns true is *key* was present in *map* and the attribute was successfully set. Otherwise False is returned.
     """
     try:
-        value = map[key]
+        value = map.pop(key)
     except KeyError:
         return False
 
     try:
         setattr(obj, attr_name, value)
     except (TypeError, ValueError):
-        return False
+        if ignore_errors:
+            return False
+        raise
 
     return True
 
 
-def set_enum_attr_from_dict(obj, attr_name, enum_type, map, key):
+def set_enum_attr_from_dict(obj, attr_name, enum_type, map, key, ignore_errors=False):
     """
     Tries to set enum attribute *attr_name* of object *obj* with the value of *key* in the dictionary *map*.
     The value is parsed to the *enum_type* (using `parse_enum` before the attribute is set).
-    If no such *key* is in the dict, or `parse_enum` fails, nothing is done.
-    Any TypeErrors or ValueErrors are silently ignored.
+    The item *key* is removed from the *map*.
+    If no such *key* is in the dict nothing is done.
+    Any TypeErrors or ValueErrors are silently ignored, if *ignore_errors is set.
 
     Returns true is *key* was present in *map* and the attribute was successfully set. Otherwise False is returned.
     """
     try:
-        value = map[key]
+        value = map.pop(key)
     except KeyError:
         return False
 
     try:
         value = parse_enum(enum_type, value)
     except (KeyError, ValueError):
-        return False
+        if ignore_errors:
+            return False
+        raise
 
     try:
         setattr(obj, attr_name, value)
     except (TypeError, ValueError):
-        return False
+        if ignore_errors:
+            return False
+        raise
 
     return True
 
@@ -283,11 +292,13 @@ class BaseMicroscope(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def set_camera_param(self, name, values):
+    def set_camera_param(self, name, values, ignore_errors=False):
         """
         Set parameters for camera *name*. The parameters should be given as a dictionary.
         Allowed keys are described in the :meth:`get_camera_param` method.
-        If setting a parameter fails, no error is raised.
+
+        When *ignore_errors* is set and setting of a parameter fails, no error is raised.
+        If an unknown camera *name* is used, an error is raised nevertheless.
 
         :raises KeyError: If an unknown camera *name* is used.
 
@@ -316,11 +327,13 @@ class BaseMicroscope(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def set_stem_detector_param(self, name, values):
+    def set_stem_detector_param(self, name, values, ignore_errors=False):
         """
         Set parameters for STEM detector *name*. The parameters should be given as a dictionary.
         Allowed keys are described in the :meth:`get_stem_detector_param` method.
-        If setting a parameter fails, no error is raised. Unknown parameters are ignored.
+
+        When *ignore_errors* is set and setting of a parameter fails, no error is raised.
+        If an unknown detector *name* is used, an error is raised nevertheless.
 
         :raises KeyError: If an unknown detector *name* is used.
 
@@ -344,11 +357,12 @@ class BaseMicroscope(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def set_stem_acquisition_param(self, values):
+    def set_stem_acquisition_param(self, values, ignore_errors=False):
         """
         Set parameters for STEM acquisition. The parameters should be given as a dictionary.
         Allowed keys are described in the :meth:`get_stem_acquisition_param` method.
-        If setting a parameter fails, no error is raised. Unknown parameters are ignored.
+
+        When *ignore_errors* is set and setting of a parameter fails, no error is raised.
 
         .. versionadded:: 2.0
         """
@@ -415,17 +429,17 @@ class BaseMicroscope(ABC):
         warnings.warn("Microscope.set_detector_param() is deprecated. Please use set_stem_detector_param(),"
                       "set_camera_param(), or set_stem_acquisition_param() instead.", DeprecationWarning)
         try:
-            param = self.set_camera_param(name, param)
+            param = self.set_camera_param(name, param, ignore_errors=True)
         except KeyError:
             try:
-                param = self.set_stem_detector_param(name, param)
+                param = self.set_stem_detector_param(name, param, ignore_errors=True)
             except KeyError:
                 raise KeyError("No detector with name %s" % name)
             else:
                 if ('dwelltime(s)' in param) and not ('dwell_time(s)' in param):
                     param = dict(param)
                     param['dwell_time(s)'] = param.pop('dwelltime(s)')
-                self.set_stem_acquisition_param(param)
+                self.set_stem_acquisition_param(param, ignore_errors=True)
         return param
 
     @abstractmethod

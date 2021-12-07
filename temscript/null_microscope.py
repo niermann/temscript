@@ -7,9 +7,9 @@ from .enums import *
 from .base_microscope import BaseMicroscope, parse_enum
 
 
-def try_update(dest, source, key, cast=None, min_value=None, max_value=None):
+def try_update(dest, source, key, cast=None, min_value=None, max_value=None, ignore_errors=False):
     try:
-        value = source[key]
+        value = source.pop(key)
     except KeyError:
         return False
 
@@ -17,7 +17,9 @@ def try_update(dest, source, key, cast=None, min_value=None, max_value=None):
         try:
             value = cast(value)
         except (KeyError, ValueError):
-            return False
+            if ignore_errors:
+                return False
+            raise
 
     if min_value is not None:
         value = max(min_value, value)
@@ -28,16 +30,18 @@ def try_update(dest, source, key, cast=None, min_value=None, max_value=None):
     return True
 
 
-def try_update_enum(dest, source, key, enum_type):
+def try_update_enum(dest, source, key, enum_type, ignore_errors=False):
     try:
-        value = source[key]
+        value = source.pop(key)
     except KeyError:
         return False
 
     try:
         value = parse_enum(enum_type, value)
     except (KeyError, ValueError):
-        return False
+        if ignore_errors:
+            return False
+        raise
 
     dest[key] = value
     return True
@@ -174,28 +178,34 @@ class NullMicroscope(BaseMicroscope):
         else:
             raise KeyError("Unknown detector")
 
-    def set_camera_param(self, name, param):
+    def set_camera_param(self, name, param, ignore_errors=False):
+        # Not implemented: raise error on unknown keys in param
         if name == "CCD":
-            try_update_enum(self._ccd_param, param, 'image_size', AcqImageSize)
-            try_update(self._ccd_param, param, 'exposure(s)', cast=float, min_value=0.0)
-            try_update(self._ccd_param, param, 'binning', cast=int, min_value=1)
-            try_update_enum(self._ccd_param, param, 'correction', AcqImageCorrection)
+            param = dict(param)
+            try_update_enum(self._ccd_param, param, 'image_size', AcqImageSize, ignore_errors=ignore_errors)
+            try_update(self._ccd_param, param, 'exposure(s)', cast=float, min_value=0.0, ignore_errors=ignore_errors)
+            try_update(self._ccd_param, param, 'binning', cast=int, min_value=1, ignore_errors=ignore_errors)
+            try_update_enum(self._ccd_param, param, 'correction', AcqImageCorrection, ignore_errors=ignore_errors)
         else:
             raise TypeError("Unknown detector.")
 
     def get_stem_detector_param(self, name):
         raise KeyError("Unknown detector")
 
-    def set_stem_detector_param(self, name, values):
+    def set_stem_detector_param(self, name, values, ignore_errors=False):
         raise KeyError("Unknown detector")
 
     def get_stem_acquisition_param(self):
         return unpack_enums(self._stem_acq_param)
 
-    def set_stem_acquisition_param(self, param):
-        try_update_enum(self._stem_acq_param, param, 'image_size', AcqImageSize)
-        try_update(self._stem_acq_param, param, 'dwell_time(s)', cast=float, min_value=1e-9)
-        try_update(self._stem_acq_param, param, 'image_size', cast=int, min_value=1)
+    def set_stem_acquisition_param(self, param, ignore_errors=False):
+        # Not implemented: raise error on unknown keys in param
+        param = dict(param)
+        try_update_enum(self._stem_acq_param, param, 'image_size', AcqImageSize, ignore_errors=ignore_errors)
+        try_update(self._stem_acq_param, param, 'dwell_time(s)', cast=float, min_value=1e-9, ignore_errors=ignore_errors)
+        try_update(self._stem_acq_param, param, 'image_size', cast=int, min_value=1, ignore_errors=ignore_errors)
+        if not ignore_errors and param:
+            raise ValueError("Unknown keys in parameter dictionary.")
 
     def acquire(self, *args):
         result = {}
