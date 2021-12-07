@@ -89,8 +89,12 @@ class RemoteMicroscope(BaseMicroscope):
             return response, None
 
         # Decode response
-        content_length = int(response.getheader("Content-Length", -1))
-        encoded_body = response.read(content_length)
+        content_length = response.getheader("Content-Length")
+        if content_length is not None:
+            encoded_body = response.read(int(content_length))
+        else:
+            encoded_body = response.read()
+
         content_type = response.getheader("Content-Type")
         if content_type not in self.accepted_content:
             raise ValueError("Unexpected response type: %s", content_type)
