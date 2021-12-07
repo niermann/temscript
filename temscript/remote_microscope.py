@@ -4,8 +4,21 @@ import socket
 from http.client import HTTPConnection
 from urllib.parse import urlencode, quote_plus
 
-from base_microscope import BaseMicroscope, parse_enum
-from enums import *
+from .base_microscope import BaseMicroscope
+
+
+class RequestJsonEncoder(json.JSONEncoder):
+    """JSONEncoder which handles iterables and numpy types"""
+    def default(self, obj):
+        if isinstance(obj, np.generic):
+            return obj.item()
+        try:
+            iterable = iter(obj)
+        except TypeError:
+            pass
+        else:
+            return list(iterable)
+        return super(RequestJsonEncoder, self).default(obj)
 
 
 class RemoteMicroscope(BaseMicroscope):
@@ -28,7 +41,11 @@ class RemoteMicroscope(BaseMicroscope):
         else:
             raise ValueError("Unknown transport protocol.")
 
-        # TODO Version check
+        # Make connection
+        self._conn = HTTPConnection(self.address[0], self.address[1], timeout=self.timeout)
+        version_string = self.get_version()
+        if int(version_string.split('.')[0]) < 2:
+            raise ValueError("Expected microscope server version >= 2.0.0, actual version is %s" % version_string)
 
     def _request(self, method, url, body=None, headers=None, accepted_response=None):
         """
@@ -55,10 +72,6 @@ class RemoteMicroscope(BaseMicroscope):
             if method in ["PUT", "PATCH", "POST"]:
                 accepted_response.append(204)
 
-        # Make connection
-        if self._conn is None:
-            self._conn = HTTPConnection(self.address[0], self.address[1], timeout=self.timeout)
-
         # Create request
         headers = dict(headers) if headers is not None else dict()
         if "Accept" not in headers:
@@ -76,23 +89,27 @@ class RemoteMicroscope(BaseMicroscope):
             raise
 
         if response.status not in accepted_response:
-            raise ValueError("Failed remote call: %d, %s" % (response.status, response.reason))
+            if response.status == 404:
+                raise KeyError("Failed remote call: %s" % response.reason)
+            else:
+                raise RuntimeError("Remote call returned status %d: %s" % (response.status, response.reason))
         if response.status == 204:
-            return response, b''
+            return response, None
 
         # Decode response
-        body = response.read()
+        content_length = int(response.getheader("Content-Length", -1))
+        encoded_body = response.read(content_length)
         content_type = response.getheader("Content-Type")
         if content_type not in self.accepted_content:
             raise ValueError("Unexpected response type: %s", content_type)
         if response.getheader("Content-Encoding") == "gzip":
             import zlib
-            body = zlib.decompress(body, 16 + zlib.MAX_WBITS)
+            encoded_body = zlib.decompress(encoded_body, wbits=16 + zlib.MAX_WBITS)
         if content_type == "application/json":
-            body = json.loads(body.decode("utf-8"))
+            body = json.loads(encoded_body.decode("utf-8"))
         elif content_type == "application/python-pickle":
             import pickle
-            body = pickle.loads(body)
+            body = pickle.loads(encoded_body)
         else:
             raise ValueError("Unsupported response type: %s", content_type)
         return response, body
@@ -106,10 +123,11 @@ class RemoteMicroscope(BaseMicroscope):
         if body:
             headers = dict(headers) if headers is not None else dict()
             headers["Content-Type"] = "application/json"
-            body = json.dumps(body).encode("utf-8")
+            encoder = RequestJsonEncoder()
+            encoded_body = encoder.encode(body).encode("utf-8")
         else:
             body = None
-        return self._request(method, url, body=body, headers=headers, accepted_response=accepted_response)
+        return self._request(method, url, body=encoded_body, headers=headers, accepted_response=accepted_response)
 
     def get_family(self):
         return self._request("GET", "/v1/family")[1]
@@ -156,7 +174,6 @@ class RemoteMicroscope(BaseMicroscope):
         return self._request("GET", "/v1/camera_param/" + quote_plus(name))[1]
 
     def set_camera_param(self, name, values):
-        # TODO: Raise KeyError for unknown camera
         self._request_with_json_body("PUT", "/v1/camera_param/" + quote_plus(name), values)
 
     def get_stem_detector_param(self, name):
@@ -170,24 +187,6 @@ class RemoteMicroscope(BaseMicroscope):
 
     def set_stem_acquisition_param(self, values):
         self._request_with_json_body("PUT", "/v1/stem_acquisition_param", values)
-
-    def get_detectors(self):
-        import warnings
-        warnings.warn("Microscope.get_detectors() is deprecated."
-                      "Please use get_stem_detectors() or get_cameras() instead.", DeprecationWarning)
-        return self._request("GET", "/v1/detectors")[1]
-
-    def get_detector_param(self, name):
-        import warnings
-        warnings.warn("Microscope.get_detector_param() is deprecated. Please use get_stem_detector_param() or "
-                      "get_camera_param() instead.", DeprecationWarning)
-        return self._request("GET", "/v1/detector_param/" + quote_plus(name))[1]
-
-    def set_detector_param(self, name, values):
-        import warnings
-        warnings.warn("Microscope.set_detector_param() is deprecated. Please use set_stem_detector_param(),"
-                      "set_camera_param(), or set_stem_acquisition_param() instead.", DeprecationWarning)
-        self._request_with_json_body("PUT", "/v1/detector_param/" + quote_plus(name), values)
 
     allowed_types = {"INT8", "INT16", "INT32", "INT64", "UINT8", "UINT16", "UINT32", "UINT64", "FLOAT32", "FLOAT64"}
     allowed_endianness = {"LITTLE", "BIG"}
@@ -223,22 +222,22 @@ class RemoteMicroscope(BaseMicroscope):
         return self._request("GET", "/v1/image_shift")[1]
 
     def set_image_shift(self, pos):
-        self._request_with_json_body("PUT", "/v1/image_shift", tuple(pos))
+        self._request_with_json_body("PUT", "/v1/image_shift", pos)
 
     def get_beam_shift(self):
         return self._request("GET", "/v1/beam_shift")[1]
 
     def set_beam_shift(self, pos):
-        self._request_with_json_body("PUT", "/v1/beam_shift", tuple(pos))
+        self._request_with_json_body("PUT", "/v1/beam_shift", pos)
 
     def get_beam_tilt(self):
         return self._request("GET", "/v1/beam_tilt")[1]
 
     def set_beam_tilt(self, pos):
-        self._request_with_json_body("PUT", "/v1/beam_tilt", tuple(pos))
+        self._request_with_json_body("PUT", "/v1/beam_tilt", pos)
 
     def normalize(self, mode="ALL"):
-        self._request_with_json_body("PUT", "/v1/normalize", str(mode))
+        self._request_with_json_body("PUT", "/v1/normalize", mode)
 
     def get_projection_sub_mode(self):
         return self._request("GET", "/v1/projection_sub_mode")[1]
@@ -247,7 +246,7 @@ class RemoteMicroscope(BaseMicroscope):
         return self._request("GET", "/v1/projection_mode")[1]
 
     def set_projection_mode(self, mode):
-        self._request_with_json_body("PUT", "/v1/projection_mode", parse_enum(ProjectionMode).name)
+        self._request_with_json_body("PUT", "/v1/projection_mode", mode)
 
     def get_projection_mode_string(self):
         return self._request("GET", "/v1/projection_mode_string")[1]
@@ -256,7 +255,7 @@ class RemoteMicroscope(BaseMicroscope):
         return self._request("GET", "/v1/magnification_index")[1]
 
     def set_magnification_index(self, index):
-        self._request_with_json_body("PUT", "/v1/magnification_index", int(index))
+        self._request_with_json_body("PUT", "/v1/magnification_index", index)
 
     def get_indicated_camera_length(self):
         return self._request("GET", "/v1/indicated_camera_length")[1]
@@ -268,7 +267,7 @@ class RemoteMicroscope(BaseMicroscope):
         return self._request("GET", "/v1/defocus")[1]
 
     def set_defocus(self, value):
-        self._request_with_json_body("PUT", "/v1/magnification_index", float(value))
+        self._request_with_json_body("PUT", "/v1/magnification_index", value)
 
     def get_objective_excitation(self):
         return self._request("GET", "/v1/objective_excitation")[1]
@@ -277,69 +276,25 @@ class RemoteMicroscope(BaseMicroscope):
         return self._request("GET", "/v1/intensity")[1]
 
     def set_intensity(self, value):
-        self._request_with_json_body("PUT", "/v1/intensity", float(content))
+        self._request_with_json_body("PUT", "/v1/intensity", value)
 
     def get_objective_stigmator(self):
         return self._request("GET", "/v1/objective_stigmator")[1]
 
     def set_objective_stigmator(self, value):
-        self._request_with_json_body("PUT", "/v1/objective_stigmator", tuple(value))
+        self._request_with_json_body("PUT", "/v1/objective_stigmator", value)
 
     def get_condenser_stigmator(self):
         return self._request("GET", "/v1/condenser_stigmator")[1]
 
     def set_condenser_stigmator(self, value):
-        self._request_with_json_body("PUT", "/v1/condenser_stigmator", tuple(value))
+        self._request_with_json_body("PUT", "/v1/condenser_stigmator", value)
 
     def get_diffraction_shift(self):
         return self._request("GET", "/v1/diffraction_shift")[1]
 
     def set_diffraction_shift(self, value):
-        self._request_with_json_body("PUT", "/v1/diffraction_shift", tuple(value))
+        self._request_with_json_body("PUT", "/v1/diffraction_shift", value)
 
     def get_state(self):
         return self._request("GET", "/v1/state")[1]
-
-
-if __name__ == '__main__':
-    SERVER_PORT = 8080
-    SERVER_HOST = 'localhost'
-    #SERVER_HOST = '192.168.99.10'
-    TRANSPORT = "JSON" # "PICKLE"
-    client = RemoteMicroscope((SERVER_HOST, SERVER_PORT), transport=TRANSPORT)
-
-    if 0:
-        print("TEST-1", client.get_test())
-        client.set_test({"EINS": 1, "ZWEI": 2.0, "DREI": "xxx", "VIER": [0, 1, 2, 3]})
-        print("TEST-2", client.get_test())
-
-    if 1:
-        print("FAMILY", client.get_family())
-        print("VACUUM", client.get_vacuum())
-        print("STAGE_HOLDER", client.get_stage_holder())
-        print("STAGE_STATUS", client.get_stage_status())
-        print("STAGE_LIMITS", client.get_stage_limits())
-        print("STAGE_POSITION", client.get_stage_position())
-        print("DETECTORS", client.get_detectors())
-
-    if 1:
-        param = client.get_detector_param("CCD2")
-        print("DETECTOR_PARAM(CCD)-1", param)
-        exposure = 1.0 if param["exposure(s)"] != 1.0 else 1.0 / param["exposure(s)"]
-        client.set_detector_param("CCD", {"exposure(s)": exposure})
-        print("DETECTOR_PARAM(CCD)-2", client.get_detector_param("CCD"))
-
-        images = client.acquire("CCD")
-        print("ACQUIRE(CCD)-ARRAY", images["CCD"].shape, images["CCD"].dtype)
-
-        import matplotlib.pyplot as plt
-
-        plt.imshow(images["CCD"], cmap="gray")
-        plt.show()
-
-    if 0:
-        pos = client.get_stage_position()
-        new_x = 10e-6 if pos['x'] < 0 else -10e-6
-        client.set_stage_position({'x': new_x})
-        for n in range(20):
-            print(client.get_stage_status(), client.get_stage_position())

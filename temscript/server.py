@@ -7,10 +7,10 @@ from urllib.parse import urlparse, parse_qs, quote, unquote
 from io import BytesIO
 
 from .base_microscope import STAGE_AXES, parse_enum
-
+from .remote_microscope import RequestJsonEncoder
 
 # Numpy array encoding JSON encoder
-class ArrayJSONEncoder(json.JSONEncoder):
+class ArrayJSONEncoder(RequestJsonEncoder):
     allowed_dtypes = {"INT8", "INT16", "INT32", "INT64", "UINT8", "UINT16", "UINT32", "UINT64", "FLOAT32", "FLOAT64"}
 
     def default(self, obj):
@@ -39,7 +39,7 @@ class ArrayJSONEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def _gzipencode(content):
+def gzip_encode(content):
     """GZIP encode bytes object"""
     import gzip
     out = BytesIO()
@@ -50,131 +50,77 @@ def _gzipencode(content):
 
 
 class MicroscopeHandler(BaseHTTPRequestHandler):
+    GET_V1_FORWARD = ("family", "microscope_id", "version", "voltage", "vacuum", "stage_holder",
+                      "stage_status", "stage_position", "stage_limits", "detectors", "cameras", "stem_detectors",
+                      "stem_acquisition_param", "image_shift", "beam_shift", "beam_tilt", "projection_sub_mode",
+                      "projection_mode", "projection_mode_string", "magnification_index", "indicated_camera_length",
+                      "indicated_magnification", "defocus", "objective_excitation", "intensity", "objective_stigmator",
+                      "condenser_stigmator", "diffraction_shift", 'optics_state', 'state')
+
+    PUT_V1_FORWARD = ("image_shift", "beam_shift", "beam_tilt", "projection_mode", "magnification_index",
+                      "defocus", "intensity", "diffraction_shift", "objective_stigmator", "condenser_stigmator",
+                      "stem_acquisition_param")
+
+    STAGE_POSITION_KW = frozenset.union(STAGE_AXES, frozenset("speed"))
+
     def build_response(self, response):
+        """Encode response and send to client"""
         if response is None:
             self.send_response(204)
             self.end_headers()
             return
-        self.send_response(200)
 
-        # Transport encoding
-        accept_type = [x.split(';', 1)[0].strip() for x in self.headers.get("Accept", "").split(",")]
-        if "application/python-pickle" in accept_type:
-            import pickle
-            encoded_response = pickle.dumps(response, protocol=2)
-            content_type = "application/python-pickle"
+        try:
+            accept_type = [x.split(';', 1)[0].strip() for x in self.headers.get("Accept", "").split(",")]
+            if "application/python-pickle" in accept_type:
+                import pickle
+                encoded_response = pickle.dumps(response, protocol=2)
+                content_type = "application/python-pickle"
+            else:
+                encoded_response = ArrayJSONEncoder().encode(response).encode("utf-8")
+                content_type = "application/json"
+
+            # Compression?
+            accept_encoding = [x.split(';', 1)[0].strip() for x in self.headers.get("Accept-Encoding", "").split(",")]
+            if len(encoded_response) > 256 and 'gzip' in accept_encoding:
+                encoded_response = gzip_encode(encoded_response)
+                content_encoding = 'gzip'
+            else:
+                content_encoding = None
+        except Exception as exc:
+            self.log_error("Exception raised during encoding of response: %s" % repr(exc))
+            self.send_error(500, "Error handling request '%s': %s" % (self.path, str(exc)))
         else:
-            encoded_response = ArrayJSONEncoder().encode(response).encode("utf-8")
-            content_type = "application/json"
+            self.send_response(200)
+            if content_encoding:
+                self.send_header('Content-Encoding', content_encoding)
+            self.send_header('Content-Length', str(len(encoded_response)))
+            self.send_header('Content-Type', content_type)
+            self.end_headers()
+            self.wfile.write(encoded_response)
 
-        # Compression?
-        accept_encoding = [x.split(';', 1)[0].strip() for x in self.headers.get("Accept-Encoding", "").split(",")]
-        if len(encoded_response) > 256 and 'gzip' in accept_encoding:
-            encoded_response = _gzipencode(encoded_response)
-            self.send_header('Content-Encoding', 'gzip')
-        self.send_header('Content-Type', content_type)
-        self.end_headers()
-        self.wfile.write(encoded_response)
-        return
-
-    # Handler for V1 GETs
     def do_GET_V1(self, endpoint, query):
-        # Check for known endpoints
-        response = None
-        if endpoint == "family":
-            response = self.server.microscope.get_family()
-        elif endpoint == "microscope_id":
-            response = self.server.microscope.get_microscope_id()
-        elif endpoint == "version":
-            response = self.server.microscope.get_version()
-        elif endpoint == "voltage":
-            response = self.server.microscope.get_voltage()
-        elif endpoint == "vacuum":
-            response = self.server.microscope.get_vacuum()
-        elif endpoint == "stage_holder":
-            response = self.server.microscope.get_stage_holder()
-        elif endpoint == "stage_status":
-            response = self.server.microscope.get_stage_status()
-        elif endpoint == "stage_position":
-            response = self.server.microscope.get_stage_position()
-        elif endpoint == "stage_limits":
-            response = self.server.microscope.get_stage_limits()
-        elif endpoint == "detectors":
-            response = self.server.microscope.get_detectors()
-        elif endpoint == "cameras":
-            response = self.server.microscope.get_cameras()
-        elif endpoint == "stem_detectors":
-            response = self.server.microscope.get_stem_detectors()
-        elif endpoint == "stem_acquisition_param":
-            response = self.server.microscope.get_stem_acquisition_param()
-        elif endpoint == "image_shift":
-            response = self.server.microscope.get_image_shift()
-        elif endpoint == "beam_shift":
-            response = self.server.microscope.get_beam_shift()
-        elif endpoint == "beam_tilt":
-            response = self.server.microscope.get_beam_tilt()
-        elif endpoint == "projection_sub_mode":
-            response = self.server.microscope.get_projection_sub_mode()
-        elif endpoint == "projection_mode":
-            response = self.server.microscope.get_projection_mode()
-        elif endpoint == "projection_mode_string":
-            response = self.server.microscope.get_projection_mode_string()
-        elif endpoint == "magnification_index":
-            response = self.server.microscope.get_magnification_index()
-        elif endpoint == "indicated_camera_length":
-            response = self.server.microscope.get_indicated_camera_length()
-        elif endpoint == "indicated_magnification":
-            response = self.server.microscope.get_indicated_magnification()
-        elif endpoint == "defocus":
-            response = self.server.microscope.get_defocus()
-        elif endpoint == "objective_excitation":
-            response = self.server.microscope.get_objective_excitation()
-        elif endpoint == "intensity":
-            response = self.server.microscope.get_intensity()
-        elif endpoint == "objective_stigmator":
-            response = self.server.microscope.get_objective_stigmator()
-        elif endpoint == "condenser_stigmator":
-            response = self.server.microscope.get_condenser_stigmator()
-        elif endpoint == "diffraction_shift":
-            response = self.server.microscope.get_diffraction_shift()
-        elif (endpoint == "optics_state") or (endpoint == "state"):
-            response = self.server.microscope.get_state()
+        """Handle V1 GET requests"""
+        if endpoint in self.GET_V1_FORWARD:
+            response = getattr(self.server.microscope, 'get_' + endpoint)()
         elif endpoint.startswith("detector_param/"):
-            try:
-                name = unquote(endpoint[15:])
-                response = self.server.microscope.get_detector_param(name)
-            except KeyError:
-                self.send_error(404, 'Unknown detector: %s' % self.path)
-                return
+            name = unquote(endpoint[15:])
+            response = self.server.microscope.get_detector_param(name)
         elif endpoint.startswith("camera_param/"):
-            try:
-                name = unquote(endpoint[13:])
-                response = self.server.microscope.get_camera_param(name)
-            except KeyError:
-                self.send_error(404, 'Unknown camera: %s' % self.path)
-                return
+            name = unquote(endpoint[13:])
+            response = self.server.microscope.get_camera_param(name)
         elif endpoint.startswith("stem_detector_param/"):
-            try:
-                name = unquote(endpoint[20:])
-                response = self.server.microscope.get_stem_detector_param(name)
-            except KeyError:
-                self.send_error(404, 'Unknown detector: %s' % self.path)
-                return
+            name = unquote(endpoint[20:])
+            response = self.server.microscope.get_stem_detector_param(name)
         elif endpoint == "acquire":
-            try:
-                detectors = query["detectors"]
-            except KeyError:
-                self.send_error(404, 'No detectors: %s' % self.path)
-                return
+            detectors = tuple(query.get("detectors", ()))
             response = self.server.microscope.acquire(*detectors)
         else:
-            self.send_error(404, 'Unknown endpoint: %s' % self.path)
-            return
-        self.build_response(response)
+            raise KeyError("Unknown endpoint: '%s'" % endpoint)
+        return response
 
-    # Handler for V1 PUTs
     def do_PUT_V1(self, endpoint, query):
-        # Read content
+        """Handle V1 PUT requests"""
         length = int(self.headers['Content-Length'])
         if length > 4096:
             raise ValueError("Too much content...")
@@ -183,96 +129,60 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
 
         # Check for known endpoints
         response = None
-        if endpoint == "stage_position":
+        if endpoint in self.PUT_V1_FORWARD:
+            response = getattr(self.server.microscope, 'set_' + endpoint)(decoded_content)
+        elif endpoint == "stage_position":
             method = decoded_content.get("method", "GO")
-            pos = dict((k, decoded_content[k]) for k in decoded_content.keys() if k in STAGE_AXES)
-            try:
-                pos['speed'] = decoded_content['speed']
-            except KeyError:
-                pass
+            pos = dict((k, decoded_content[k]) for k in decoded_content.keys() if k in self.STAGE_POSITION_KW)
             self.server.microscope.set_stage_position(pos, method=method)
         elif endpoint.startswith("camera_param/"):
-            try:
-                name = unquote(endpoint[13:])
-                response = self.server.microscope.set_camera_param(name, decoded_content)
-            except KeyError:
-                self.send_error(404, 'Unknown detector: %s' % self.path)
-                return
+            name = unquote(endpoint[13:])
+            response = self.server.microscope.set_camera_param(name, decoded_content)
         elif endpoint.startswith("stem_detector_param/"):
-            try:
-                name = unquote(endpoint[20:])
-                response = self.server.microscope.set_stem_detector_param(name, decoded_content)
-            except KeyError:
-                self.send_error(404, 'Unknown detector: %s' % self.path)
-                return
-        elif endpoint == "stem_acquisition_param":
-            self.server.microscope.set_stem_acquisition_param(decoded_content)
+            name = unquote(endpoint[20:])
+            response = self.server.microscope.set_stem_detector_param(name, decoded_content)
         elif endpoint.startswith("detector_param/"):
-            try:
-                name = unquote(endpoint[15:])
-                response = self.server.microscope.set_detector_param(name, decoded_content)
-            except KeyError:
-                self.send_error(404, 'Unknown detector: %s' % self.path)
-                return
-        elif endpoint == "image_shift":
-            self.server.microscope.set_image_shift(decoded_content)
-        elif endpoint == "beam_shift":
-            self.server.microscope.set_beam_shift(decoded_content)
-        elif endpoint == "beam_tilt":
-            self.server.microscope.set_beam_tilt(decoded_content)
-        elif endpoint == "projection_mode":
-            self.server.microscope.set_projection_mode(decoded_content)
-        elif endpoint == "magnification_index":
-            self.server.microscope.set_magnification_index(decoded_content)
-        elif endpoint == "defocus":
-            self.server.microscope.set_defocus(decoded_content)
-        elif endpoint == "intensity":
-            self.server.microscope.set_intensity(decoded_content)
-        elif endpoint == "diffraction_shift":
-            self.server.microscope.set_diffraction_shift(decoded_content)
-        elif endpoint == "objective_stigmator":
-            self.server.microscope.set_objective_stigmator(decoded_content)
-        elif endpoint == "condenser_stigmator":
-            self.server.microscope.set_condenser_stigmator(decoded_content)
+            name = unquote(endpoint[15:])
+            response = self.server.microscope.set_detector_param(name, decoded_content)
         elif endpoint == "normalize":
-            mode = decoded_content
-            try:
-                self.server.microscope.normalize(mode)
-            except ValueError:
-                self.send_error(404, 'Unknown mode.' % mode)
-                return
+            self.server.microscope.normalize(decoded_content)
         else:
-            self.send_error(404, 'Unknown endpoint: %s' % self.path)
-            return
-        self.build_response(response)
+            raise KeyError("Unknown endpoint: '%s'" % endpoint)
+        return response
 
     # Handler for the GET requests
     def do_GET(self):
         try:
             request = urlparse(self.path)
             if request.path.startswith("/v1/"):
-                self.do_GET_V1(request.path[4:], parse_qs(request.query))
+                response = self.do_GET_V1(request.path[4:], parse_qs(request.query))
             else:
-                self.send_error(404, 'Unknown API version: %s' % self.path)
-            return
+                raise KeyError('Unknown API version: %s' % self.path)
+        except KeyError as exc:
+            self.log_error("KeyError raised during handling of GET request '%s': %s" % (self.path, repr(exc)))
+            self.send_error(404, str(exc))
         except Exception as exc:
-            self.log_error("Exception raised during handling of GET request: %s\n%s",
-                           self.path, traceback.format_exc())
-            self.send_error(500, "Error handling request: %s" % self.path)
+            self.log_error("Exception raised during handling of GET request '%s': %s" % (self.path, repr(exc)))
+            self.send_error(500, "Error handling request '%s': %s" % (self.path, str(exc)))
+        else:
+            self.build_response(response)
 
     # Handler for the PUT requests
     def do_PUT(self):
         try:
             request = urlparse(self.path)
             if request.path.startswith("/v1/"):
-                self.do_PUT_V1(request.path[4:], parse_qs(request.query))
+                response = self.do_PUT_V1(request.path[4:], parse_qs(request.query))
             else:
-                self.send_error(404, 'Unknown API version: %s' % self.path)
-            return
+                raise KeyError('Unknown API version: %s' % self.path)
+        except KeyError as exc:
+            self.log_error("KeyError raised during handling of GET request '%s': %s" % (self.path, repr(exc)))
+            self.send_error(404, str(exc))
         except Exception as exc:
-            self.log_error("Exception raised during handling of PUT request: %s\n%s",
-                           self.path, traceback.format_exc())
-            self.send_error(500, "Error handling request: %s" % self.path)
+            self.log_error("Exception raised during handling of GET request '%s': %s" % (self.path, repr(exc)))
+            self.send_error(500, "Error handling request '%s': %s" % (self.path, str(exc)))
+        else:
+            self.build_response(response)
 
 
 class MicroscopeServer(HTTPServer, object):

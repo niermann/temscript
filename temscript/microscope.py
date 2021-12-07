@@ -153,6 +153,7 @@ class Microscope(BaseMicroscope):
         }
 
     def set_camera_param(self, name, values):
+        # TODO: Explicit errors
         camera = self._find_camera(name)
         info = camera.Info
         param = camera.AcqParams
@@ -176,6 +177,7 @@ class Microscope(BaseMicroscope):
         }
 
     def set_stem_detector_param(self, name, values):
+        # TODO: Explicit errors
         det = self._find_stem_detector(name)
         info = det.Info
         set_attr_from_dict(info, 'Brightness', values, 'brightness')
@@ -190,6 +192,7 @@ class Microscope(BaseMicroscope):
         }
 
     def set_stem_acquisition_param(self, values):
+        # TODO: Explicit errors
         param = self._tem_acquisition.StemAcqParams
         set_enum_attr_from_dict(param, 'ImageSize', AcqImageSize, values, 'image_size')
         set_attr_from_dict(param, 'Binning', values, 'binning')
