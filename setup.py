@@ -37,5 +37,8 @@ setup(name='temscript',
     install_requires=['numpy'],
     entry_points={'console_scripts': ['temscript-server = temscript.server:run_server']},
     url="https://github.com/niermann/temscript",
-    project_urls={"Source Code": "https://github.com/niermann/temscript"}
+    project_urls={
+        "Source": "https://github.com/niermann/temscript",
+        'Documentation': "https://temscript.readthedocs.io/"
+    }
 )
