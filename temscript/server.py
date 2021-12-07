@@ -61,8 +61,6 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
                       "defocus", "intensity", "diffraction_shift", "objective_stigmator", "condenser_stigmator",
                       "stem_acquisition_param")
 
-    STAGE_POSITION_KW = frozenset.union(STAGE_AXES, frozenset("speed"))
-
     def build_response(self, response):
         """Encode response and send to client"""
         if response is None:
@@ -132,9 +130,10 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
         if endpoint in self.PUT_V1_FORWARD:
             response = getattr(self.server.microscope, 'set_' + endpoint)(decoded_content)
         elif endpoint == "stage_position":
-            method = decoded_content.get("method", "GO")
-            pos = dict((k, decoded_content[k]) for k in decoded_content.keys() if k in self.STAGE_POSITION_KW)
-            self.server.microscope.set_stage_position(pos, method=method)
+            method = query.get("method", [None])[0]
+            speed = query.get("speed", [None])[0]
+            pos = dict((k, decoded_content[k]) for k in decoded_content.keys() if k in STAGE_AXES)
+            self.server.microscope.set_stage_position(pos, method=method, speed=speed)
         elif endpoint.startswith("camera_param/"):
             name = unquote(endpoint[13:])
             response = self.server.microscope.set_camera_param(name, decoded_content)

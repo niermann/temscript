@@ -145,7 +145,10 @@ class BaseMicroscope(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def set_stage_position(self, pos=None, method="GO", **kw):
+    def _set_stage_position(self, pos=None, method="GO", speed=None):
+        raise NotImplementedError
+
+    def set_stage_position(self, pos=None, method=None, speed=None, **kw):
         """
         Set new stage position.
 
@@ -161,13 +164,37 @@ class BaseMicroscope(ABC):
 
         There are two methods of movement:
 
-            * "GO": Moves directly to new stage position * "MOVE": Avoids pole piece touches, by first zeroing the
+            * "GO": Moves directly to new stage position (default)
+            * "MOVE": Avoids pole piece touches, by first zeroing the
             angle, moving the stage than, and setting the angles again.
 
         .. versionchanged:: 1.0.10
             "speed" keyword added.
+
+        .. deprecated::
+            In versions < 2.0.0 the "speed" and "method" keywords could also be passed within the `pos` dictionary.
+            This is usage is deprecated since 2.0.0, use the `speed` and `method` keywords instead.
         """
-        raise NotImplementedError
+        pos = dict(pos) if pos is not None else dict()
+        for key, value in kw.items():
+            if key not in STAGE_AXES:
+                raise AttributeError("Unknown keyword '%s'" % key)
+            pos[key] = value
+        if "speed" in pos:
+            import warnings
+            warnings.warn("Usage of the 'speed' key in the 'pos' dictionary is deprecated since version 2.0."
+                          "Use the 'speed' keyword instead.")
+            if speed is None:
+                speed = pos.pop('speed')
+        if "method" in pos:
+            import warnings
+            warnings.warn("Usage of the 'method' key in the 'pos' dictionary is deprecated since version 2.0."
+                          "Use the 'method' keyword instead.")
+            if method is None:
+                method = pos.pop('method')
+        if method is None:
+            method = "GO"
+        self._set_stage_position(pos, method=method, speed=speed)
 
     @abstractmethod
     def get_cameras(self):

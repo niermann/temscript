@@ -81,14 +81,13 @@ class Microscope(BaseMicroscope):
     def get_stage_position(self):
         return self._tem_stage.Position
 
-    def set_stage_position(self, pos=None, method="GO", **kw):
-        pos = dict(pos, **kw) if pos is not None else dict(**kw)
+    def _set_stage_position(self, pos=None, method="GO", speed=None):
         if method == "GO":
-            self._tem_stage.GoTo(**pos)
+            self._tem_stage.GoTo(speed=speed, **pos)
         elif method == "MOVE":
             self._tem_stage.MoveTo(**pos)
         else:
-            raise ValueError("Unknown movement methods.")
+            raise ValueError("Unknown movement method.")
 
     def get_cameras(self):
         cameras = {}

@@ -81,7 +81,22 @@ if args.stage or args.all:
     pos = microscope.get_stage_position()
     new_x = 10e-6 if pos['x'] < 0 else -10e-6
     microscope.set_stage_position(x=new_x)
-    for n in range(10):
+    for n in range(5):
+        print("\tstatus=%s, position=%s" % (microscope.get_stage_status(), microscope.get_stage_position()))
+        sleep(0.1)
+
+    pos = microscope.get_stage_position()
+    new_y = 10e-6 if pos['y'] < 0 else -10e-6
+    microscope.set_stage_position({'y': new_y})
+    for n in range(5):
+        print("\tstatus=%s, position=%s" % (microscope.get_stage_status(), microscope.get_stage_position()))
+        sleep(0.1)
+
+    pos = microscope.get_stage_position()
+    new_y = 10e-6 if pos['y'] < 0 else -10e-6
+    new_x = 10e-6 if pos['x'] < 0 else -10e-6
+    microscope.set_stage_position({'x': new_x}, y=new_y, speed=0.5)
+    for n in range(5):
         print("\tstatus=%s, position=%s" % (microscope.get_stage_status(), microscope.get_stage_position()))
         sleep(0.1)
 

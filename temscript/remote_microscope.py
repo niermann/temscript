@@ -47,7 +47,7 @@ class RemoteMicroscope(BaseMicroscope):
         if int(version_string.split('.')[0]) < 2:
             raise ValueError("Expected microscope server version >= 2.0.0, actual version is %s" % version_string)
 
-    def _request(self, method, url, body=None, headers=None, accepted_response=None):
+    def _request(self, method, endpoint, body=None, query=None, headers=None, accepted_response=None):
         """
         Send request to server.
 
@@ -56,8 +56,10 @@ class RemoteMicroscope(BaseMicroscope):
 
         :param method: HTTP method to use, e.g. "GET" or "PUT"
         :type method: str
-        :param url: URL to request
-        :type url: str
+        :param endpoint: URL to request
+        :type endpoint: str
+        :param query: Optional dict or iterable of key-value-tuples to encode as query
+        :type: Union[Dict[str, str], Iterable[Tuple[str, str]], None]
         :param body: Body to send
         :type body: Optional[Union[str, bytes]]
         :param header: Optional dict of additional headers.
@@ -78,6 +80,10 @@ class RemoteMicroscope(BaseMicroscope):
             headers["Accept"] = ",".join(self.accepted_content)
         if "Accept-Encoding" not in headers:
             headers["Accept-Encoding"] = "gzip"
+        if query is not None:
+            url = endpoint + '?' + urlencode(query)
+        else:
+            url = endpoint
         self._conn.request(method, url, body, headers)
 
         # Get response
@@ -114,7 +120,7 @@ class RemoteMicroscope(BaseMicroscope):
             raise ValueError("Unsupported response type: %s", content_type)
         return response, body
 
-    def _request_with_json_body(self, method, url, body, headers=None, accepted_response=None):
+    def _request_with_json_body(self, method, url, body, query=None, headers=None, accepted_response=None):
         """
         Like :meth:`_request` but body is encoded as JSON.
 
@@ -127,7 +133,7 @@ class RemoteMicroscope(BaseMicroscope):
             encoded_body = encoder.encode(body).encode("utf-8")
         else:
             body = None
-        return self._request(method, url, body=encoded_body, headers=headers, accepted_response=accepted_response)
+        return self._request(method, url, body=encoded_body, query=query, headers=headers, accepted_response=accepted_response)
 
     def get_family(self):
         return self._request("GET", "/v1/family")[1]
@@ -156,13 +162,13 @@ class RemoteMicroscope(BaseMicroscope):
     def get_stage_position(self):
         return self._request("GET", "/v1/stage_position")[1]
 
-    def set_stage_position(self, pos=None, method=None, **kw):
-        pos = dict(pos, **kw) if pos is not None else dict(**kw)
+    def _set_stage_position(self, pos=None, method="GO", speed=None):
+        query = {}
         if method is not None:
-            pos["method"] = method
-        elif "method" in pos:
-            del pos["method"]
-        self._request_with_json_body("PUT", "/v1/stage_position", body=pos)
+            query['method'] = method
+        if speed is not None:
+            query['speed'] = speed
+        self._request_with_json_body("PUT", "/v1/stage_position", body=pos, query=query)
 
     def get_cameras(self):
         return self._request("GET", "/v1/cameras")[1]
@@ -192,8 +198,8 @@ class RemoteMicroscope(BaseMicroscope):
     allowed_endianness = {"LITTLE", "BIG"}
 
     def acquire(self, *detectors):
-        query = urlencode(tuple(("detectors", det) for det in detectors))
-        response, body = self._request("GET", "/v1/acquire?" + query)
+        query = tuple(("detectors", det) for det in detectors)
+        response, body = self._request("GET", "/v1/acquire", query=query)
         if response.getheader("Content-Type") == "application/json":
             # Unpack array
             import sys

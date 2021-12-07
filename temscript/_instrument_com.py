@@ -508,15 +508,12 @@ class Stage(IUnknown):
     def Position(self):
         return self._Position.to_dict()
 
-    def GoTo(self, **kw):
+    def GoTo(self, speed=None, **kw):
         pos = self._Position
-        speed = kw.pop('speed', 1.0)
-        if speed is None:
-            speed = 1.0
         axes = pos.from_dict(kw)
         if not axes:
             return
-        if speed != 1.0:
+        if speed is not None:
             Stage.GOTO_WITH_SPEED_METHOD(self.get(), pos.get(), axes, speed)
         else:
             Stage.GOTO_METHOD(self.get(), pos.get(), axes)

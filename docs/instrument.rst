@@ -416,14 +416,13 @@ The methods and classes directly represent the COM objects exposed by the *Scrip
         a string containing the unit the axis is measured in (either 'meters' or
         'radians'). The *axis* must be one of the axes ('x', 'y', 'z', 'a', or 'b').
 
-    .. method:: GoTo(x=None, y=None, z=None, a=None, b=None, speed=1.0)
+    .. method:: GoTo(x=None, y=None, z=None, a=None, b=None, speed=None)
 
         Moves stage to indicated position. Stage is only moved along
         the axes that are not ``None``.
 
         Optionally the keyword *speed* can be given, which allows to set the
-        speed of the movement. 1.0 correspond to the default speed. (internally the ``GoToWithSpeed`` method is used,
-        if speed is not 1.0).
+        speed of the movement. 1.0 correspond to the default speed.
 
         .. note::
             At least with Titan 1.1 software, moving the stage along multiple axes with *speed* != 1.0
@@ -433,7 +432,8 @@ The methods and classes directly represent the COM objects exposed by the *Scrip
             "speed" keyword added.
 
         .. versionchanged:: 2.0
-            Invalid keywords raise ValueError (instead of TypeError)
+            Internally the ``GoToWithSpeed`` method is used, when the *speed* keyword is given. Previous to version 2.0,
+            the ``GoToWithSpeed`` method was only used if the *speed* keyword was different from 1.0.
 
     .. method:: MoveTo(x=None, y=None, z=None, a=None, b=None)
 
