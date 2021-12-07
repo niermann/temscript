@@ -1,12 +1,62 @@
-from __future__ import division, print_function
+from enum import Enum
+
 import numpy as np
 from math import pi
 
 from .enums import *
-from .microscope import _parse_enum
+from .base_microscope import BaseMicroscope, parse_enum
 
 
-class NullMicroscope(object):
+def try_update(dest, source, key, cast=None, min_value=None, max_value=None, ignore_errors=False):
+    try:
+        value = source.pop(key)
+    except KeyError:
+        return False
+
+    if callable(cast):
+        try:
+            value = cast(value)
+        except (KeyError, ValueError):
+            if ignore_errors:
+                return False
+            raise
+
+    if min_value is not None:
+        value = max(min_value, value)
+    if max_value is not None:
+        value = min(max_value, value)
+
+    dest[key] = value
+    return True
+
+
+def try_update_enum(dest, source, key, enum_type, ignore_errors=False):
+    try:
+        value = source.pop(key)
+    except KeyError:
+        return False
+
+    try:
+        value = parse_enum(enum_type, value)
+    except (KeyError, ValueError):
+        if ignore_errors:
+            return False
+        raise
+
+    dest[key] = value
+    return True
+
+
+def unpack_enums(map):
+    result = {}
+    for key, value in map.items():
+        if isinstance(value, Enum):
+            value = value.name
+        result[key] = value
+    return result
+
+
+class NullMicroscope(BaseMicroscope):
     """
     Microscope-like class which emulates an microscope.
 
@@ -27,14 +77,19 @@ class NullMicroscope(object):
         self._stage_pos = { 'x': 0.0, 'y': 0.0, 'z': 0.0, 'a': 0.0, 'b': 0.0 }
         self._wait_exposure = bool(wait_exposure) if wait_exposure is not None else True
         self._ccd_param = {
-            "image_size": "FULL",
+            "image_size": AcqImageSize.FULL,
             "exposure(s)": 1.0,
             "binning": 1,
-            "correction": "DEFAULT",
-            "exposure_mode": "NONE",
-            "shutter_mode": "POST_SPECIMEN",
+            "correction": AcqImageCorrection.DEFAULT,
+            "exposure_mode": AcqExposureMode.NONE,
+            "shutter_mode": AcqShutterMode.POST_SPECIMEN,
             "pre_exposure(s)": 0.0,
             "pre_exposure_pause(s)": 0.0
+        }
+        self._stem_acq_param = {
+            "image_size": AcqImageSize.FULL,
+            "dwell_time(s)": 1e-6,
+            "binning": 1,
         }
         self._voltage = voltage
         self._image_shift = np.zeros(2, dtype=float)
@@ -48,6 +103,7 @@ class NullMicroscope(object):
         self._magnification_index = 10
         self._defocus = 0.0
         self._intensity = 0.0
+        self._screen_position = ScreenPosition.DOWN
 
     def get_family(self):
         return "NULL"
@@ -65,17 +121,17 @@ class NullMicroscope(object):
 
     def get_vacuum(self):
         return {
-            "status": "READY",
+            "status": VacuumStatus.READY.name,
             "column_valves_open": self._column_valves,
             "pvp_running": False,
             "gauges(Pa)": {},
         }
 
     def get_stage_holder(self):
-        return "UNKNOWN"
+        return StageHolderType.SINGLE_TILT.name
 
     def get_stage_status(self):
-        return "READY"
+        return StageStatus.READY.name
 
     def get_stage_limits(self):
         return {
@@ -89,8 +145,7 @@ class NullMicroscope(object):
     def get_stage_position(self):
         return dict(self._stage_pos)
 
-    def set_stage_position(self, pos=None, method="GO", **kw):
-        pos = dict(pos, **kw) if pos is not None else dict(**kw)
+    def _set_stage_position(self, pos, method="GO", speed=None):
         if method not in ["GO", "MOVE"]:
             raise ValueError("Unknown movement methods.")
         limit = self.get_stage_limits()
@@ -101,7 +156,7 @@ class NullMicroscope(object):
             value = max(mn, min(mx, float(pos[key])))
             self._stage_pos[key] = value
 
-    def get_detectors(self):
+    def get_cameras(self):
         return {
             "CCD" : {
                 "type": "CAMERA",
@@ -115,34 +170,43 @@ class NullMicroscope(object):
             }
         }
 
-    def get_detector_param(self, name):
-        if name == "CCD":
-            return dict(self._ccd_param)
-        else:
-            raise ValueError("Unknown detector")
+    def get_stem_detectors(self):
+        return {}
 
-    def set_detector_param(self, name, param):
+    def get_camera_param(self, name):
         if name == "CCD":
-            try:
-                self._ccd_param["image_size"] = _parse_enum(AcqImageSize, param["image_size"]).name
-            except Exception:
-                pass
-            try:
-                self._ccd_param["exposure(s)"] = max(0.0, float(param["exposure(s)"]))
-            except Exception:
-                pass
-            try:
-                binning = int(param["exposure(s)"])
-                if binning in self.CCD_BINNINGS:
-                    self._ccd_param["binning"] = binning
-            except Exception:
-                pass
-            try:
-                self._ccd_param["correction"] = _parse_enum(AcqImageCorrection, param["correction"]).name
-            except Exception:
-                pass
+            return unpack_enums(self._ccd_param)
         else:
-            raise TypeError("Unknown detector type.")
+            raise KeyError("Unknown detector")
+
+    def set_camera_param(self, name, param, ignore_errors=False):
+        # Not implemented: raise error on unknown keys in param
+        if name == "CCD":
+            param = dict(param)
+            try_update_enum(self._ccd_param, param, 'image_size', AcqImageSize, ignore_errors=ignore_errors)
+            try_update(self._ccd_param, param, 'exposure(s)', cast=float, min_value=0.0, ignore_errors=ignore_errors)
+            try_update(self._ccd_param, param, 'binning', cast=int, min_value=1, ignore_errors=ignore_errors)
+            try_update_enum(self._ccd_param, param, 'correction', AcqImageCorrection, ignore_errors=ignore_errors)
+        else:
+            raise TypeError("Unknown detector.")
+
+    def get_stem_detector_param(self, name):
+        raise KeyError("Unknown detector")
+
+    def set_stem_detector_param(self, name, values, ignore_errors=False):
+        raise KeyError("Unknown detector")
+
+    def get_stem_acquisition_param(self):
+        return unpack_enums(self._stem_acq_param)
+
+    def set_stem_acquisition_param(self, param, ignore_errors=False):
+        # Not implemented: raise error on unknown keys in param
+        param = dict(param)
+        try_update_enum(self._stem_acq_param, param, 'image_size', AcqImageSize, ignore_errors=ignore_errors)
+        try_update(self._stem_acq_param, param, 'dwell_time(s)', cast=float, min_value=1e-9, ignore_errors=ignore_errors)
+        try_update(self._stem_acq_param, param, 'image_size', cast=int, min_value=1, ignore_errors=ignore_errors)
+        if not ignore_errors and param:
+            raise ValueError("Unknown keys in parameter dictionary.")
 
     def acquire(self, *args):
         result = {}
@@ -150,9 +214,9 @@ class NullMicroscope(object):
         for det in detectors:
             if det == "CCD":
                 size = self.CCD_SIZE // self._ccd_param["binning"]
-                if self._ccd_param["image_size"] == "HALF":
+                if self._ccd_param["image_size"] == AcqImageSize.HALF:
                     size //= 2
-                elif self._ccd_param["image_size"] == "QUARTER":
+                elif self._ccd_param["image_size"] == AcqImageSize.QUARTER:
                     size //= 4
                 if self._wait_exposure:
                     import time
@@ -188,13 +252,13 @@ class NullMicroscope(object):
             raise ValueError("Unknown normalization mode: %s" % mode)
 
     def get_projection_sub_mode(self):
-        return ProjectionSubMode(self._projection_sub_mode)
+        return self._projection_sub_mode.name
 
     def get_projection_mode(self):
-        return ProjectionMode(self._projection_mode)
+        return self._projection_mode.name
 
     def set_projection_mode(self, mode):
-        mode = _parse_enum(ProjectionMode, mode)
+        mode = parse_enum(ProjectionMode, mode)
         self._projection_mode = mode
 
     def get_projection_mode_string(self):
@@ -233,49 +297,33 @@ class NullMicroscope(object):
     def set_intensity(self, value):
         self._intensity = float(value)
 
+    def get_objective_stigmator(self):
+        return tuple(self._objective_stigmator)
+
     def set_objective_stigmator(self, value):
         value = np.atleast_1d(value)
         self._objective_stigmator[...] = value
 
-    def get_objective_stigmator(self):
-        return tuple(self._objective_stigmator)
+    def get_condenser_stigmator(self):
+        return tuple(self._condenser_stigmator)
 
     def set_condenser_stigmator(self, value):
         value = np.atleast_1d(value)
         self._condenser_stigmator[...] = value
 
-    def get_condenser_stigmator(self):
-        return tuple(self._condenser_stigmator)
+    def get_diffraction_shift(self):
+        return tuple(self._diffraction_shift)
 
     def set_diffraction_shift(self, value):
         value = np.atleast_1d(value)
         self._diffraction_shift[...] = value
 
-    def get_diffraction_shift(self):
-        return tuple(self._diffraction_shift)
+    def get_screen_current(self):
+        return 1e-9
 
-    def get_optics_state(self):
-        state = {
-            "family": self.get_family(),
-            "microscope_id": self.get_microscope_id(),
-            "temscript_version": self.get_version(),
-            "voltage(kV)": self.get_voltage(),
-            "stage_holder": self.get_stage_holder(),
-            "stage_position": self.get_stage_position(),
-            "image_shift": self.get_image_shift(),
-            "beam_shift": self.get_beam_shift(),
-            "beam_tilt": self.get_beam_tilt(),
-            "projection_sub_mode": self.get_projection_sub_mode().name,
-            "projection_mode": self.get_projection_mode().name,
-            "projection_mode_string": self.get_projection_mode_string(),
-            "magnification_index": self.get_magnification_index(),
-            "indicated_camera_length": self.get_indicated_camera_length(),
-            "indicated_magnification": self.get_indicated_magnification(),
-            "defocus": self.get_defocus(),
-            "intensity": self.get_intensity(),
-            "objective_excitation": self.get_objective_excitation(),
-            "condenser_stigmator": self.get_condenser_stigmator(),
-            "objective_stigmator": self.get_objective_stigmator(),
-            "diffraction_shift": self.get_diffraction_shift(),
-        }
-        return state
+    def get_screen_position(self):
+        return self._screen_position.name
+
+    def set_screen_position(self, mode):
+        mode = parse_enum(ScreenPosition, mode)
+        self._screen_position = mode
