@@ -1,10 +1,10 @@
 import numpy as np
 
-from temscript.remote_microscope import RequestJsonEncoder
+from temscript.remote_microscope import ExtendedJsonEncoder
 from temscript.enums import *
 
 print("RequestJsonEncoder:")
-reqenc = RequestJsonEncoder()
+reqenc = ExtendedJsonEncoder()
 
 print("\tint:", reqenc.encode(123))
 print("\tnp.int64:", reqenc.encode(np.int64(123)))

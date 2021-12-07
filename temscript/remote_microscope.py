@@ -1,24 +1,10 @@
-import numpy as np
 import socket
 import json
 from http.client import HTTPConnection
 from urllib.parse import urlencode, quote_plus
 
 from .base_microscope import BaseMicroscope
-
-
-class RequestJsonEncoder(json.JSONEncoder):
-    """JSONEncoder which handles iterables and numpy types"""
-    def default(self, obj):
-        if isinstance(obj, np.generic):
-            return obj.item()
-        try:
-            iterable = iter(obj)
-        except TypeError:
-            pass
-        else:
-            return list(iterable)
-        return super(RequestJsonEncoder, self).default(obj)
+from .marshall import ExtendedJsonEncoder, unpack_array, gzip_decode, MIME_TYPE_PICKLE, MIME_TYPE_JSON
 
 
 class RemoteMicroscope(BaseMicroscope):
@@ -35,9 +21,9 @@ class RemoteMicroscope(BaseMicroscope):
         if transport is None:
             transport = "JSON"
         if transport == "JSON":
-            self.accepted_content = ["application/json"]
+            self.accepted_content = [MIME_TYPE_JSON]
         elif transport == "PICKLE":
-            self.accepted_content = ["application/python-pickle"]
+            self.accepted_content = [MIME_TYPE_PICKLE]
         else:
             raise ValueError("Unknown transport protocol.")
 
@@ -109,11 +95,10 @@ class RemoteMicroscope(BaseMicroscope):
         if content_type not in self.accepted_content:
             raise ValueError("Unexpected response type: %s", content_type)
         if response.getheader("Content-Encoding") == "gzip":
-            import zlib
-            encoded_body = zlib.decompress(encoded_body, wbits=16 + zlib.MAX_WBITS)
-        if content_type == "application/json":
+            encoded_body = gzip_decode(encoded_body)
+        if content_type == MIME_TYPE_JSON:
             body = json.loads(encoded_body.decode("utf-8"))
-        elif content_type == "application/python-pickle":
+        elif content_type == MIME_TYPE_PICKLE:
             import pickle
             body = pickle.loads(encoded_body)
         else:
@@ -128,8 +113,8 @@ class RemoteMicroscope(BaseMicroscope):
         """
         if body:
             headers = dict(headers) if headers is not None else dict()
-            headers["Content-Type"] = "application/json"
-            encoder = RequestJsonEncoder()
+            headers["Content-Type"] = MIME_TYPE_JSON
+            encoder = ExtendedJsonEncoder()
             encoded_body = encoder.encode(body).encode("utf-8")
         else:
             encoded_body = None
@@ -204,34 +189,11 @@ class RemoteMicroscope(BaseMicroscope):
             query = None
         self._request_with_json_body("PUT", "/v1/stem_acquisition_param", values, query=query)
 
-    allowed_types = {"INT8", "INT16", "INT32", "INT64", "UINT8", "UINT16", "UINT32", "UINT64", "FLOAT32", "FLOAT64"}
-    allowed_endianness = {"LITTLE", "BIG"}
-
     def acquire(self, *detectors):
         query = tuple(("detectors", det) for det in detectors)
         response, body = self._request("GET", "/v1/acquire", query=query)
-        if response.getheader("Content-Type") == "application/json":
-            # Unpack array
-            import sys
-            import base64
-            endianness = sys.byteorder.upper()
-            result = {}
-            for k, v in body.items():
-                shape = int(v["height"]), int(v["width"])
-                if v["type"] not in self.allowed_types:
-                    raise ValueError("Unsupported array type in JSON stream: %s" % str(v["type"]))
-                if v["endianness"] not in self.allowed_endianness:
-                    raise ValueError("Unsupported endianness in JSON stream: %s" % str(v["endianness"]))
-                dtype = np.dtype(v["type"].lower())
-                if v["encoding"] == "BASE64":
-                    data = base64.b64decode(v["data"])
-                else:
-                    raise ValueError("Unsupported encoding of array in JSON stream: %s" % str(v["encoding"]))
-                data = np.frombuffer(data, dtype=dtype).reshape(*shape)
-                if v["endianness"] != endianness:
-                    data = data.byteswap()
-                result[k] = data
-            body = result
+        if response.getheader("Content-Type") == MIME_TYPE_JSON:
+            body = {key: unpack_array(value) for key, value in body.items()}
         return body
 
     def get_image_shift(self):

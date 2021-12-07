@@ -1,52 +1,10 @@
 #!/usr/bin/python
-import numpy as np
 import json
-import traceback
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from urllib.parse import urlparse, parse_qs, quote, unquote
-from io import BytesIO
+from urllib.parse import urlparse, parse_qs, unquote
 
-from .base_microscope import STAGE_AXES, parse_enum
-from .remote_microscope import RequestJsonEncoder
-
-# Numpy array encoding JSON encoder
-class ArrayJSONEncoder(RequestJsonEncoder):
-    allowed_dtypes = {"INT8", "INT16", "INT32", "INT64", "UINT8", "UINT16", "UINT32", "UINT64", "FLOAT32", "FLOAT64"}
-
-    def default(self, obj):
-        if isinstance(obj, np.ndarray):
-            import sys, base64
-
-            dtype_name = obj.dtype.name.upper()
-            if dtype_name not in self.allowed_dtypes:
-                return json.JSONEncoder.default(self, obj)
-
-            if obj.dtype.byteorder == '<':
-                endian = "LITTLE"
-            elif obj.dtype.byteorder == '>':
-                endian = "BIG"
-            else:
-                endian = sys.byteorder.upper()
-
-            return {
-                'width': obj.shape[1],
-                'height': obj.shape[0],
-                'type': dtype_name,
-                'endianness': endian,
-                'encoding': "BASE64",
-                'data': base64.b64encode(obj).decode("ascii")
-            }
-        return json.JSONEncoder.default(self, obj)
-
-
-def gzip_encode(content):
-    """GZIP encode bytes object"""
-    import gzip
-    out = BytesIO()
-    f = gzip.GzipFile(fileobj=out, mode='w', compresslevel=5)
-    f.write(content)
-    f.close()
-    return out.getvalue()
+from .base_microscope import STAGE_AXES
+from .marshall import ExtendedJsonEncoder, gzip_encode, MIME_TYPE_PICKLE, MIME_TYPE_JSON, pack_array
 
 
 class MicroscopeHandler(BaseHTTPRequestHandler):
@@ -60,6 +18,9 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
     PUT_V1_FORWARD = ("image_shift", "beam_shift", "beam_tilt", "projection_mode", "magnification_index",
                       "defocus", "intensity", "diffraction_shift", "objective_stigmator", "condenser_stigmator")
 
+    def get_accept_types(self):
+        return [x.split(';', 1)[0].strip() for x in self.headers.get("Accept", "").split(",")]
+
     def build_response(self, response):
         """Encode response and send to client"""
         if response is None:
@@ -68,14 +29,14 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             return
 
         try:
-            accept_type = [x.split(';', 1)[0].strip() for x in self.headers.get("Accept", "").split(",")]
-            if "application/python-pickle" in accept_type:
+            accept_type = self.get_accept_types()
+            if MIME_TYPE_PICKLE in accept_type:
                 import pickle
                 encoded_response = pickle.dumps(response, protocol=2)
-                content_type = "application/python-pickle"
+                content_type = MIME_TYPE_PICKLE
             else:
-                encoded_response = ArrayJSONEncoder().encode(response).encode("utf-8")
-                content_type = "application/json"
+                encoded_response = ExtendedJsonEncoder().encode(response).encode("utf-8")
+                content_type = MIME_TYPE_JSON
 
             # Compression?
             accept_encoding = [x.split(';', 1)[0].strip() for x in self.headers.get("Accept-Encoding", "").split(",")]
@@ -112,6 +73,8 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
         elif endpoint == "acquire":
             detectors = tuple(query.get("detectors", ()))
             response = self.server.microscope.acquire(*detectors)
+            if MIME_TYPE_PICKLE not in self.get_accept_types():
+                response = {key: pack_array(value) for key, value in response.items()}
         else:
             raise KeyError("Unknown endpoint: '%s'" % endpoint)
         return response
