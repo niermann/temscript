@@ -12,7 +12,7 @@ one for running scripts directly on the microscope PC, one to run scripts remote
 finally a dummy implementation for offline development & testing exists.
 
 Currently the ``temscript`` package requires Python 3.4 or higher. The current plan is to keep the minimum
-supporting Python version at 3.4, since this is the latest Python version supporting Windows XP.
+supported Python version at 3.4, since this is the latest Python version supporting Windows XP.
 
 # Documentation
 
