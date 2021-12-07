@@ -1,4 +1,4 @@
-.. _Restrictions:
+.. _restrictions:
 
 Restrictions
 ============
@@ -9,8 +9,9 @@ with the scripting interfaces by FEI or Thermo Fisher Scientific themself, known
 reference.
 
 * Changing the projection mode from IMAGING to DIFFRACTION and back again changes the magnification in imaging
-mode (Titan 1.1).
+  mode (Titan 1.1).
 * :attr:`Projection.Magnification` does not return the actual magnification, but always 0.0 (Titan 1.1)
 * Setting the binning value for a CCD camera, changes the exposure time (Titan 1.1 with Gatan US1000 camera).
 * Acquisition with changed exposure time with a CCD camera, are not always done with the new exposure time.
 * :attr:`Illumination.IntensityLimitEnabled` raises exception when queried (Titan 1.1).
+

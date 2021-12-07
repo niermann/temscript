@@ -103,6 +103,7 @@ class NullMicroscope(BaseMicroscope):
         self._magnification_index = 10
         self._defocus = 0.0
         self._intensity = 0.0
+        self._screen_position = ScreenPosition.DOWN
 
     def get_family(self):
         return "NULL"
@@ -316,3 +317,13 @@ class NullMicroscope(BaseMicroscope):
     def set_diffraction_shift(self, value):
         value = np.atleast_1d(value)
         self._diffraction_shift[...] = value
+
+    def get_screen_current(self):
+        return 1e-9
+
+    def get_screen_position(self):
+        return self._screen_position.name
+
+    def set_screen_position(self, mode):
+        mode = parse_enum(ScreenPosition, mode)
+        self._screen_position = mode

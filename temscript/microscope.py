@@ -26,6 +26,7 @@ class Microscope(BaseMicroscope):
         self._tem_stage = tem.Stage
         self._tem_acquisition = tem.Acquisition
         self._tem_vacuum = tem.Vacuum
+        self._tem_camera = tem.Camera
         self._family = tem.Configuration.ProductFamily
 
     def get_family(self):
@@ -333,3 +334,13 @@ class Microscope(BaseMicroscope):
 
     def set_diffraction_shift(self, value):
         self._tem_projection.DiffractionShift = value
+
+    def get_screen_current(self):
+        return self._tem_camera.ScreenCurrent
+
+    def get_screen_position(self):
+        return self._tem_camera.MainScreen.name
+
+    def set_screen_position(self, mode):
+        mode = parse_enum(ScreenPosition, mode)
+        self._tem_camera.MainScreen = mode

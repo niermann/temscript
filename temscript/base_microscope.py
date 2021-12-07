@@ -565,7 +565,7 @@ class BaseMicroscope(ABC):
         Set projection mode.
 
         :param mode: Projection mode: "DIFFRACTION" or "IMAGING"
-        :type mode: str
+        :type mode: Literal['DIFFRACTION', 'IMAGING']
 
         .. versionadded:: 1.0.9
 
@@ -761,6 +761,39 @@ class BaseMicroscope(ABC):
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def get_screen_current(self):
+        """
+        Get current on fluorescent screen
+
+        :returns: Screen currrent in Amperes
+
+        .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_screen_position(self):
+        """
+        Get position of fluorescent screen
+
+        :rtype: Literal['UP', 'DOWN', 'UNKNOWN']
+
+        .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_screen_position(self, mode):
+        """
+        Set position of fluorescent screen
+
+        :type mode: Literal['UP', 'DOWN']
+
+        .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
     def get_state(self):
         """
         Return a dictionary with state of the microscope.
@@ -792,6 +825,8 @@ class BaseMicroscope(ABC):
             "condenser_stigmator": self.get_condenser_stigmator(),
             "objective_stigmator": self.get_objective_stigmator(),
             "diffraction_shift": self.get_diffraction_shift(),
+            "screen_current": self.get_screen_current(),
+            "screen_position": self.get_screen_position()
         }
         return state
 

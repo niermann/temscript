@@ -274,5 +274,14 @@ class RemoteMicroscope(BaseMicroscope):
     def set_diffraction_shift(self, value):
         self._request_with_json_body("PUT", "/v1/diffraction_shift", value)
 
+    def get_screen_current(self):
+        return self._request("GET", "/v1/screen_current")[1]
+
+    def get_screen_position(self):
+        return self._request("GET", "/v1/screen_position")[1]
+
+    def set_screen_position(self, mode):
+        self._request_with_json_body("PUT", "/v1/screen_position", mode)
+
     def get_state(self):
         return self._request("GET", "/v1/state")[1]

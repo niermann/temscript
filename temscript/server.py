@@ -13,10 +13,12 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
                       "stem_acquisition_param", "image_shift", "beam_shift", "beam_tilt", "projection_sub_mode",
                       "projection_mode", "projection_mode_string", "magnification_index", "indicated_camera_length",
                       "indicated_magnification", "defocus", "objective_excitation", "intensity", "objective_stigmator",
-                      "condenser_stigmator", "diffraction_shift", 'optics_state', 'state')
+                      "condenser_stigmator", "diffraction_shift", "screen_current", "screen_position",
+                      'optics_state', 'state')
 
     PUT_V1_FORWARD = ("image_shift", "beam_shift", "beam_tilt", "projection_mode", "magnification_index",
-                      "defocus", "intensity", "diffraction_shift", "objective_stigmator", "condenser_stigmator")
+                      "defocus", "intensity", "diffraction_shift", "objective_stigmator", "condenser_stigmator",
+                      "screen_position")
 
     def get_accept_types(self):
         return [x.split(';', 1)[0].strip() for x in self.headers.get("Accept", "").split(",")]

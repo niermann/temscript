@@ -72,6 +72,8 @@ print("Microscope.get_objective_stigmator():", microscope.get_objective_stigmato
 print("Microscope.get_condenser_stigmator():", microscope.get_condenser_stigmator())
 print("Microscope.get_diffraction_shift():", microscope.get_diffraction_shift())
 print("Microscope.get_intensity():", microscope.get_intensity())
+print("Microscope.get_screen_current():", microscope.get_screen_current())
+print("Microscope.get_screen_position():", microscope.get_screen_position())
 
 print("Microscope.get_state():", microscope.get_state())
 
