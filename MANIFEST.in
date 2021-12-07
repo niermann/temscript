@@ -1,5 +1,6 @@
-graft _temscript
 graft docs
-include *.txt
+graft scripts
+include LICENSE
+include README.md
 prune docs/_build
 exclude stdscript.dll
