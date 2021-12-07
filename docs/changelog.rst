@@ -10,6 +10,10 @@ Version 2.0.0
 * Documentation of known issues of the original scripting interface
 * Support of the fluorescent screen
 * Separation of STEM detectors and CCD cameras in high level interface
+* Deprecation of the methods 'get_detectors', 'get_detector_param', 'set_detector_params', and 'get_optics_state' of
+'Microscope' and related classes. See docs for further details.
+* Deprecation of the property 'AcqParams' of 'STEMDetector'. See docs for further details.
+* Deprecation of the use of 'speed' and 'method' keywords in position dictionary of the 'set_stage_position' method.
 * Abstract base class for high level interface
 * Test scripts
 * Several small improvements and fixes
