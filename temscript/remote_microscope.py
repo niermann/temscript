@@ -1,6 +1,6 @@
 import numpy as np
-import json
 import socket
+import json
 from http.client import HTTPConnection
 from urllib.parse import urlencode, quote_plus
 
@@ -62,8 +62,8 @@ class RemoteMicroscope(BaseMicroscope):
         :type: Union[Dict[str, str], Iterable[Tuple[str, str]], None]
         :param body: Body to send
         :type body: Optional[Union[str, bytes]]
-        :param header: Optional dict of additional headers.
-        :type header: Optional[Dict[str, str]]
+        :param headers: Optional dict of additional headers.
+        :type headers: Optional[Dict[str, str]]
         :param accepted_response: Accepted response codes
         :type accepted_response: Optional[List[int]]
 
@@ -132,7 +132,7 @@ class RemoteMicroscope(BaseMicroscope):
             encoder = RequestJsonEncoder()
             encoded_body = encoder.encode(body).encode("utf-8")
         else:
-            body = None
+            encoded_body = None
         return self._request(method, url, body=encoded_body, query=query, headers=headers, accepted_response=accepted_response)
 
     def get_family(self):
@@ -180,7 +180,7 @@ class RemoteMicroscope(BaseMicroscope):
         return self._request("GET", "/v1/camera_param/" + quote_plus(name))[1]
 
     def set_camera_param(self, name, values, ignore_errors=None):
-        query={}
+        query = None
         if ignore_errors is not None:
             query = {'ignore_errors': int(ignore_errors)}
         self._request_with_json_body("PUT", "/v1/camera_param/" + quote_plus(name), values, query=query)
@@ -189,6 +189,7 @@ class RemoteMicroscope(BaseMicroscope):
         return self._request("GET", "/v1/stem_detector_param/" + quote_plus(name))[1]
 
     def set_stem_detector_param(self, name, values, ignore_errors=None):
+        query = None
         if ignore_errors is not None:
             query = {'ignore_errors': int(ignore_errors)}
         self._request_with_json_body("PUT", "/v1/stem_detector_param/" + quote_plus(name), values, query=query)
@@ -199,6 +200,8 @@ class RemoteMicroscope(BaseMicroscope):
     def set_stem_acquisition_param(self, values, ignore_errors=None):
         if ignore_errors is not None:
             query = {'ignore_errors': int(ignore_errors)}
+        else:
+            query = None
         self._request_with_json_body("PUT", "/v1/stem_acquisition_param", values, query=query)
 
     allowed_types = {"INT8", "INT16", "INT32", "INT64", "UINT8", "UINT16", "UINT32", "UINT64", "FLOAT32", "FLOAT64"}
