@@ -14,6 +14,12 @@ finally a dummy implementation for offline development & testing exists.
 Currently the ``temscript`` package requires Python 3.4 or higher. The current plan is to keep the minimum
 supporting Python version at 3.4, since this is the latest Python version supporting Windows XP.
 
+# Documentation
+
+The documentation of the latest version can be found at:
+
+https://temscript.readthedocs.io/
+
 # Installation
 
 Requirements:
