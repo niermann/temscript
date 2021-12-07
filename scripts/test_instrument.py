@@ -185,7 +185,6 @@ def test_gun(instrument):
     print("Testing gun...")
     gun = instrument.Gun
     print("Gun.HTState:", gun.HTState)
-    print("Gun.Intensity:", gun.Intensity)
     print("Gun.HTValue:", gun.HTValue)
     print("Gun.HTMaxValue:", gun.HTMaxValue)
     print("Gun.Shift:", gun.Shift)
