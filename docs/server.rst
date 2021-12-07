@@ -8,6 +8,13 @@ The temscript server
 If remote scripting of the microscope is required as provided via the :class:`RemoteMicroscope` class, the temscript
 server must run on the microscope PC. The temscript server provides a Web-API to the interface.
 
+.. warning::
+
+    The server provides no means of security or authorization control itself.
+
+    Thus it is highly recommended to let the server
+    only listen to internal networks or at least route it through a reverse proxy, which implements sufficient security.
+
 Command line
 ------------
 
