@@ -18,3 +18,4 @@ reference.
   GoToWithSpeed method if the COM interface fails for multiple axes, Titan 1.1)
 * Querying the attributes :attr:`STEMAcqParams.DwellTime`, :attr:`Illumination.StemMagnification`, and
   :attr:`Illumination.StemRotation` fails, if STEM is not available (Titan 1.1)
+* If during a specimen holder exchange no holder is selected (yet), querying :attr:`Stage.Holder` fails (Titan 1.1).
