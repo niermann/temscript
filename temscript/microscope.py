@@ -9,9 +9,11 @@ from .enums import *
 
 class Microscope(BaseMicroscope):
     """
-    A more pythonic interface to the microscope.
+    Hich level interface to local microscope.
 
-    Creating an instance of this class, already queries the COM interface for the instrument
+    Creating an instance of this class, already queries the COM interface for the instrument.
+
+    Usage:
 
         >>> microscope = Microscope()
         >>> microscope.get_family()

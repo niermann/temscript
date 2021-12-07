@@ -1,9 +1,38 @@
+.. module:: temscript
+
+.. _instrument:
+
 The COM interface
 =================
 
-.. module:: temscript
-
 The methods and classes directly represent the COM objects exposed by the *Scripting* interface.
+The interface is described in detail in the scripting manual of your microscope
+(usually in the file ``scripting.pdf`` located in the ``C:\Titan\Tem_help\manual`` or
+``C:\Tecnai\tem_help\manual`` directories).
+
+The manual is your ultimate reference, this documentation will only describe the
+python wrapper to the COM interface.
+
+Enumerations
+^^^^^^^^^^^^
+
+Many of the attributes return values from enumerations. These enumerations can be found in the
+:mod:`temscript.enums` module.
+
+.. versionchanged:: 2.0
+    All methods of the COM interface now directly return the enumeration objects. The constants
+    from temscript version 1.x are not defined anymore. The numerical values still can be accessed
+    by querying the corresponding enum, e.g. ``psmSA`` corresponds to ``ProjectionSubMode.SA``.
+
+Vectors
+^^^^^^^
+
+Some object attributes handle with two dimensional vectors (e.g. ``ImageShift``). These
+attributes return ``(x, y)`` like tuples and expect iterable objects (``tuple``,
+``list``, ...) with two floats when written (numpy arrays with two entries also work).
+
+:class:`Instrument` - The entry point...
+----------------------------------------
 
 .. function:: GetInstrument()
 
@@ -11,10 +40,6 @@ The methods and classes directly represent the COM objects exposed by the *Scrip
     is not the microscope's PC or you don't have the *Scripting* option installed on
     your microscope, this method will raise an exception (most likely of the :exc:`OSError`
     type).
-
-
-:class:`Instrument` - The entry point...
-----------------------------------------
 
 .. class:: Instrument
 
@@ -201,14 +226,14 @@ The methods and classes directly represent the COM objects exposed by the *Scrip
         rounded to the next available value on write.
 
         .. note::
-            On Titan 1.1, reading this attribute fails, if STEM is not available. See :ref:`_Restrictions`.
+            On Titan 1.1, reading this attribute fails, if STEM is not available. See :ref:`restrictions`.
 
     .. attribute:: StemRotation
 
         (read/write) *float* Rotation in STEM (radians).
 
         .. note::
-            On Titan 1.1, reading this attribute fails, if STEM is not available. See :ref:`_Restrictions`.
+            On Titan 1.1, reading this attribute fails, if STEM is not available. See :ref:`restrictions`.
 
     .. attribute:: CondenserMode
 
@@ -256,7 +281,7 @@ The methods and classes directly represent the COM objects exposed by the *Scrip
 
         .. note::
             On Titan 1.1 software changing the mode from IMAGING to DIFFRACTION and back again changes the
-            magnification. See :ref:`_Restrictions`.
+            magnification. See :ref:`restrictions`.
 
     .. attribute:: SubMode
 
@@ -282,7 +307,7 @@ The methods and classes directly represent the COM objects exposed by the *Scrip
         Use :attr:`MagnificationIndex` to change.
 
         .. note::
-            On Titan 1.1 software this property reads 0.0 regardless of used mode. See :ref:`_Restrictions`.
+            On Titan 1.1 software this property reads 0.0 regardless of used mode. See :ref:`restrictions`.
 
     .. attribute:: MagnificationIndex
 
@@ -432,7 +457,7 @@ The methods and classes directly represent the COM objects exposed by the *Scrip
 
         .. note::
             At least with Titan 1.1 software, moving the stage along multiple axes with *speed* keyword set
-            fails. Thus movement with *speed* set, must be done along a single axis only. See :ref:`_Restrictions`.
+            fails. Thus movement with *speed* set, must be done along a single axis only. See :ref:`restrictions`.
 
         .. versionchanged:: 1.0.10
             "speed" keyword added.
@@ -642,14 +667,14 @@ Acquisition related classes
 
         .. note::
             On Titan 1.1 software images acquired after setting this property might not be acquired with the new
-            setting, even though this property reflects the new value when read. See :ref:`_Restrictions`.
+            setting, even though this property reflects the new value when read. See :ref:`restrictions`.
 
     .. attribute:: Binning
 
         (read/write) *int* Binning value
 
         .. note::
-            On Titan 1.1 software setting this property also changes the exposure time. See :ref:`_Restrictions`.
+            On Titan 1.1 software setting this property also changes the exposure time. See :ref:`restrictions`.
 
     .. attribute:: ImageCorrection
 
@@ -744,7 +769,7 @@ Acquisition related classes
         (read/write) *float* Dwell time (seconds)
 
         .. note::
-            On Titan 1.1, reading this attribute fails, if STEM is not available. See :ref:`_Restrictions`.
+            On Titan 1.1, reading this attribute fails, if STEM is not available. See :ref:`restrictions`.
 
     .. attribute:: Binning
 

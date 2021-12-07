@@ -11,6 +11,7 @@ parser.add_argument("--remote", type=str, default='', help="Use RemoteMicroscope
 parser.add_argument("--stage", action='store_true', default=False, help="Test stage movement (defaults to false)")
 parser.add_argument("--ccd", action='store_true', default=False, help="Test CCD acquisition (defaults to false)")
 parser.add_argument("--all", action='store_true', default=False, help="Perform all optional tests (defaults to false)")
+parser.add_argument("--noshow", action='store_true', default=False, help="Don't show anything on UI (only stdout)")
 args = parser.parse_args()
 
 if args.null:
@@ -121,7 +122,8 @@ if cameras and (args.ccd or args.all):
     print("\t\tshape:", images[ccd].shape)
     print("\t\tdtype:", images[ccd].dtype)
 
-    import matplotlib.pyplot as plt
-    plt.imshow(images[ccd], cmap="gray")
-    plt.show()
+    if not args.noshow:
+        import matplotlib.pyplot as plt
+        plt.imshow(images[ccd], cmap="gray")
+        plt.show()
 

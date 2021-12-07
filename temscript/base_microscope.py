@@ -175,7 +175,7 @@ class BaseMicroscope(ABC):
 
             * "GO": Moves directly to new stage position (default)
             * "MOVE": Avoids pole piece touches, by first zeroing the
-            angle, moving the stage than, and setting the angles again.
+              angle, moving the stage than, and setting the angles again.
 
         .. versionchanged:: 1.0.10
             "speed" keyword added.
@@ -253,7 +253,7 @@ class BaseMicroscope(ABC):
         :meth:`get_stem_detectors` methods. The embedded dicts have a key "type" with value "CAMERA" or "STEM_DETECTOR"
         identifying the detector type.
 
-        .. see::
+        .. seealso::
             :meth:`get_cameras`, :meth:`get_stem_detectors`
 
         .. deprecated: 2.0
@@ -286,8 +286,8 @@ class BaseMicroscope(ABC):
         .. versionadded:: 2.0
 
         .. note::
-            * On Titan 1.1 software the "exposure_time(s)" value might not reflect the correct exposure
-            time. See :ref:`_Restrictions`.
+            On Titan 1.1 software the "exposure_time(s)" value might not reflect the correct exposure
+            time. See :ref:`restrictions`.
         """
         raise NotImplementedError
 
@@ -305,10 +305,12 @@ class BaseMicroscope(ABC):
         .. versionadded:: 2.0
 
         .. note::
+
             * On Titan 1.1 software setting the "binning" property also changes the exposure time.
             * On Titan 1.1 software images acquired after setting the "exposure_time(s)" property might not be acquired
-            with the new setting, even though this property reflects the new value when read.
-            See :ref:`_Restrictions`.
+              with the new setting, even though this property reflects the new value when read.
+
+            Also see :ref:`restrictions`.
         """
         raise NotImplementedError
 
@@ -355,7 +357,7 @@ class BaseMicroscope(ABC):
         .. versionadded:: 2.0
 
         .. note::
-            On Titan 1.1 software reading the parameters fails, if STEM is not available. See :ref:`_Restrictions`.
+            On Titan 1.1 software reading the parameters fails, if STEM is not available. See :ref:`restrictions`.
         """
         raise NotImplementedError
 
@@ -574,7 +576,7 @@ class BaseMicroscope(ABC):
 
         .. note::
             On Titan 1.1 software changing the mode from IMAGING to DIFFRACTION and back again changes the
-            magnification. See :ref:`_Restrictions`.
+            magnification. See :ref:`restrictions`.
         """
         raise NotImplementedError
 
@@ -625,7 +627,7 @@ class BaseMicroscope(ABC):
         If microscope is in diffraction mode, 0 is returned.
 
         .. note::
-            On Titan 1.1 software this method returns 0.0 regardless of used mode. See :ref:`_Restrictions`.
+            On Titan 1.1 software this method returns 0.0 regardless of used mode. See :ref:`restrictions`.
 
         .. versionadded:: 1.0.9
         """

@@ -12,7 +12,9 @@ class RemoteMicroscope(BaseMicroscope):
     Microscope-like class, which connects to a remote microscope server.
 
     :param address: (host, port) combination for the remote microscope.
+    :type address: Tuple[str, int]
     :param transport: Underlying transport protocol, either 'JSON' (default) or 'PICKLE'
+    :type transport: Literal['JSON', 'PICKLE']
     """
     def __init__(self, address, transport=None, timeout=None):
         self.address = address

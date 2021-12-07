@@ -94,8 +94,8 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
         if endpoint in self.PUT_V1_FORWARD:
             response = getattr(self.server.microscope, 'set_' + endpoint)(decoded_content)
         elif endpoint == "stage_position":
-            method = query.get("method", [None])[0]
-            speed = query.get("speed", [None])[0]
+            method = str(query["method"][0]) if "method" in query else None
+            speed = float(query["speed"][0]) if "speed" in query else None
             pos = dict((k, decoded_content[k]) for k in decoded_content.keys() if k in STAGE_AXES)
             self.server.microscope.set_stage_position(pos, method=method, speed=speed)
         elif endpoint.startswith("camera_param/"):
@@ -166,3 +166,41 @@ class MicroscopeServer(HTTPServer, object):
             microscope_factory = Microscope
         self.microscope = microscope_factory()
         super(MicroscopeServer, self).__init__(server_address, MicroscopeHandler)
+
+
+def run_server(argv=None):
+    """
+    Main program for running the server
+
+    :param argv: Arguments
+    :type argv: List of str (see sys.argv)
+    """
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-p", "--port", type=int, default=8080, help="Specify port on which the server is listening")
+    parser.add_argument("--host", type=str, default='', help="Specify host address on which the the server is listening")
+    parser.add_argument("--null", action='store_true', default=False, help="Use NullMicroscope instead of local microscope as backend")
+    args = parser.parse_args(argv)
+
+    if args.null:
+        from .null_microscope import NullMicroscope
+        microscope_factory = NullMicroscope
+    else:
+        microscope_factory = None
+
+    # Create a web server and define the handler to manage the incoming request
+    server = MicroscopeServer((args.host, args.port), microscope_factory=microscope_factory)
+    try:
+        print("Started httpserver on host '%s' port %d." % (args.host, args.port))
+        print("Press Ctrl+C to stop server.")
+
+        # Wait forever for incoming http requests
+        server.serve_forever()
+
+    except KeyboardInterrupt:
+        print('Ctrl+C received, shutting down the http server')
+
+    finally:
+        server.socket.close()
+
+    return 0
