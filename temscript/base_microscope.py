@@ -353,6 +353,9 @@ class BaseMicroscope(ABC):
             * "dwell_time(s)": Dwell time in seconds
 
         .. versionadded:: 2.0
+
+        .. note::
+            On Titan 1.1 software reading the parameters fails, if STEM is not available. See :ref:`_Restrictions`.
         """
         raise NotImplementedError
 

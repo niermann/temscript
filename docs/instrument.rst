@@ -200,9 +200,15 @@ The methods and classes directly represent the COM objects exposed by the *Scrip
         one of the discret values (as displayed on the micrsocope), the value is
         rounded to the next available value on write.
 
+        .. note::
+            On Titan 1.1, reading this attribute fails, if STEM is not available. See :ref:`_Restrictions`.
+
     .. attribute:: StemRotation
 
         (read/write) *float* Rotation in STEM (radians).
+
+        .. note::
+            On Titan 1.1, reading this attribute fails, if STEM is not available. See :ref:`_Restrictions`.
 
     .. attribute:: CondenserMode
 
@@ -425,8 +431,8 @@ The methods and classes directly represent the COM objects exposed by the *Scrip
         speed of the movement. 1.0 correspond to the default speed.
 
         .. note::
-            At least with Titan 1.1 software, moving the stage along multiple axes with *speed* != 1.0
-            fails. Thus movement with *speed* != 1.0 must be done along a single axis.
+            At least with Titan 1.1 software, moving the stage along multiple axes with *speed* keyword set
+            fails. Thus movement with *speed* set, must be done along a single axis only. See :ref:`_Restrictions`.
 
         .. versionchanged:: 1.0.10
             "speed" keyword added.
@@ -736,6 +742,9 @@ Acquisition related classes
     .. attribute:: DwellTime
 
         (read/write) *float* Dwell time (seconds)
+
+        .. note::
+            On Titan 1.1, reading this attribute fails, if STEM is not available. See :ref:`_Restrictions`.
 
     .. attribute:: Binning
 
