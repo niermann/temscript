@@ -251,7 +251,7 @@ class RemoteMicroscope(BaseMicroscope):
         return self._request("GET", "/v1/defocus")[1]
 
     def set_defocus(self, value):
-        self._request_with_json_body("PUT", "/v1/magnification_index", value)
+        self._request_with_json_body("PUT", "/v1/defocus", value)
 
     def get_objective_excitation(self):
         return self._request("GET", "/v1/objective_excitation")[1]
