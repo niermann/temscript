@@ -11,7 +11,7 @@ def parse_enum(enum_type, item):
         return enum_type(item)
 
 
-def set_attr_from_dict(obj, attr_name, map, key, ignore_errors=False):
+def set_attr_from_dict(obj, attr_name, mapping, key, ignore_errors=False):
     """
     Tries to set attribute *attr_name* of object *obj* with the value of *key* in the dictionary *map*.
     The item *key* is removed from the *map*.
@@ -21,7 +21,7 @@ def set_attr_from_dict(obj, attr_name, map, key, ignore_errors=False):
     Returns true is *key* was present in *map* and the attribute was successfully set. Otherwise False is returned.
     """
     try:
-        value = map.pop(key)
+        value = mapping.pop(key)
     except KeyError:
         return False
 
@@ -35,7 +35,7 @@ def set_attr_from_dict(obj, attr_name, map, key, ignore_errors=False):
     return True
 
 
-def set_enum_attr_from_dict(obj, attr_name, enum_type, map, key, ignore_errors=False):
+def set_enum_attr_from_dict(obj, attr_name, enum_type, mapping, key, ignore_errors=False):
     """
     Tries to set enum attribute *attr_name* of object *obj* with the value of *key* in the dictionary *map*.
     The value is parsed to the *enum_type* (using `parse_enum` before the attribute is set).
@@ -46,7 +46,7 @@ def set_enum_attr_from_dict(obj, attr_name, enum_type, map, key, ignore_errors=F
     Returns true is *key* was present in *map* and the attribute was successfully set. Otherwise False is returned.
     """
     try:
-        value = map.pop(key)
+        value = mapping.pop(key)
     except KeyError:
         return False
 
@@ -518,7 +518,7 @@ class BaseMicroscope(ABC):
         :meth:`get_beam_tilt`.
 
         On FEI microscopes, this will turn on dark field mode, unless (0, 0) is set.
-        If (0, 0) is set which will the dark field mode is turned off.
+        If (0, 0) is set, dark field mode is turned off.
         """
         raise NotImplementedError
 
@@ -799,6 +799,155 @@ class BaseMicroscope(ABC):
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def get_illumination_mode(self):
+        """
+        Get illumination mode (mini condenser setting)
+
+        :rtype: Literal['NANOPROBE', 'MICROPROBE']
+
+        .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_illumination_mode(self, mode):
+        """
+        Set illumination mode (mini condenser setting)
+
+        :type mode: Literal['NANOPROBE', 'MICROPROBE']
+
+        .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_condenser_mode(self):
+        """
+        Get condenser mode
+
+        :rtype: Literal['PARALLEL', 'PROBE']
+
+        .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_condenser_mode(self, mode):
+        """
+        Set condenser mode
+
+        :type mode: Literal['PARALLEL', 'PROBE']
+
+        .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_spot_size_index(self):
+        """
+        Get spot size index.
+
+        :rtype: int
+
+        .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_spot_size_index(self, index):
+        """
+        Set spot size index.
+
+        :type index: int
+
+        .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_dark_field_mode(self):
+        """
+        Get dark field mode.
+
+        .. see::
+            :meth:`set_beam_tilt` might change this value.
+
+        :rtype: Literal['OFF', 'CARTESIAN', 'CONICAL]
+
+        .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_dark_field_mode(self, mode):
+        """
+        Set dark field mode.
+
+        .. note::
+            :meth:`set_beam_tilt` might change this value.
+
+        :type mode: Literal['OFF', 'CARTESIAN', 'CONICAL']
+
+        .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_beam_blanked(self):
+        """
+        Return whether the beam is blanked.
+
+        :rtype: bool
+
+        .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_beam_blanked(self, mode):
+        """
+        Enable beam blanker
+
+        :type mode: bool
+
+        .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def is_stem_available(self):
+        """
+        Return whether the microscope has STEM capabilities.
+
+        :rtype: bool
+
+        .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_instrument_mode(self):
+        """
+        Get instrument mode.
+
+        :rtype: Literal['TEM', 'STEM']
+
+        .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_instrument_mode(self, mode):
+        """
+        Set instrument mode.
+
+        :type mode: Literal['TEM', 'STEM]
+
+        .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
     def get_state(self):
         """
         Return a dictionary with state of the microscope.
@@ -831,7 +980,13 @@ class BaseMicroscope(ABC):
             "objective_stigmator": self.get_objective_stigmator(),
             "diffraction_shift": self.get_diffraction_shift(),
             "screen_current": self.get_screen_current(),
-            "screen_position": self.get_screen_position()
+            "screen_position": self.get_screen_position(),
+            "spot_size_index": self.get_spot_size_index(),
+            "illumination_mode": self.get_illumination_mode(),
+            "condenser_mode": self.get_condenser_mode(),
+            "beam_blanked": self.get_beam_blanked(),
+            "stem_available": self.is_stem_available(),
+            "instrument_mode": self.get_instrument_mode(),
         }
         return state
 

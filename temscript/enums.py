@@ -21,7 +21,6 @@ class TEMScriptingError(IntEnum):
     E_ACCESSDENIED = -2147024891        # 0x80070005
 
 
-
 class VacuumStatus(IntEnum):
     UNKNOWN = 1
     OFF = 2
@@ -195,4 +194,3 @@ class PlateLabelDateFormat(IntEnum):
     DDMMYY = 1
     MMDDYY = 2
     YYMMDD = 3
-

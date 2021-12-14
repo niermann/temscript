@@ -29,6 +29,7 @@ class Microscope(BaseMicroscope):
         self._tem_acquisition = tem.Acquisition
         self._tem_vacuum = tem.Vacuum
         self._tem_camera = tem.Camera
+        self._tem_control = tem.InstrumentModeControl
         self._family = tem.Configuration.ProductFamily
 
     def get_family(self):
@@ -161,9 +162,12 @@ class Microscope(BaseMicroscope):
         param = camera.AcqParams
         set_enum_attr_from_dict(param, 'ImageSize', AcqImageSize, values, 'image_size', ignore_errors=ignore_errors)
         set_attr_from_dict(param, 'Binning', values, 'binning', ignore_errors=ignore_errors)
-        set_enum_attr_from_dict(param, 'ImageCorrection', AcqImageCorrection, values, 'correction', ignore_errors=ignore_errors)
-        set_enum_attr_from_dict(param, 'ExposureMode', AcqExposureMode, values, 'exposure_mode', ignore_errors=ignore_errors)
-        set_enum_attr_from_dict(info, 'ShutterMode', AcqShutterMode, values, 'shutter_mode', ignore_errors=ignore_errors)
+        set_enum_attr_from_dict(param, 'ImageCorrection', AcqImageCorrection, values, 'correction',
+                                ignore_errors=ignore_errors)
+        set_enum_attr_from_dict(param, 'ExposureMode', AcqExposureMode, values, 'exposure_mode',
+                                ignore_errors=ignore_errors)
+        set_enum_attr_from_dict(info, 'ShutterMode', AcqShutterMode, values, 'shutter_mode',
+                                ignore_errors=ignore_errors)
         set_attr_from_dict(param, 'PreExposureTime', values, 'pre_exposure(s)', ignore_errors=ignore_errors)
         set_attr_from_dict(param, 'PreExposurePauseTime', values, 'pre_exposure_pause(s)', ignore_errors=ignore_errors)
 
@@ -346,3 +350,46 @@ class Microscope(BaseMicroscope):
     def set_screen_position(self, mode):
         mode = parse_enum(ScreenPosition, mode)
         self._tem_camera.MainScreen = mode
+
+    def get_illumination_mode(self):
+        return self._tem_illumination.Mode.name
+
+    def set_illumination_mode(self, mode):
+        mode = parse_enum(IlluminationMode, mode)
+        self._tem_illumination.Mode = mode
+
+    def get_condenser_mode(self):
+        return self._tem_illumination.CondenserMode.name
+
+    def set_condenser_mode(self, mode):
+        mode = parse_enum(CondenserMode, mode)
+        self._tem_illumination.CondenserMode = mode
+
+    def get_spot_size_index(self):
+        return self._tem_illumination.SpotSizeIndex
+
+    def set_spot_size_index(self, index):
+        self._tem_illumination.SpotSizeIndex = index
+
+    def get_dark_field_mode(self):
+        return self._tem_illumination.DarkFieldMode.name
+
+    def set_dark_field_mode(self, mode):
+        mode = parse_enum(DarkFieldMode, mode)
+        self._tem_illumination.DarkFieldMode = mode
+
+    def get_beam_blanked(self):
+        return self._tem_illumination.BeamBlanked
+
+    def set_beam_blanked(self, mode):
+        self._tem_illumination.BeamBlanked = mode
+
+    def is_stem_available(self):
+        return self._tem_control.StemAvailabe
+
+    def get_instrument_mode(self):
+        return self._tem_control.InstrumentMode.name
+
+    def set_instrument_mode(self, mode):
+        mode = parse_enum(InstrumentMode, mode)
+        self._tem_control.InstrumentMode = mode

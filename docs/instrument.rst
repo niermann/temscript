@@ -31,6 +31,9 @@ Some object attributes handle with two dimensional vectors (e.g. ``ImageShift``)
 attributes return ``(x, y)`` like tuples and expect iterable objects (``tuple``,
 ``list``, ...) with two floats when written (numpy arrays with two entries also work).
 
+Interface classes
+^^^^^^^^^^^^^^^^^
+
 :class:`Instrument` - The entry point...
 ----------------------------------------
 
@@ -161,7 +164,7 @@ attributes return ``(x, y)`` like tuples and expect iterable objects (``tuple``,
 
     .. attribute:: DarkFieldMode
 
-        (read/write) Alias of :attr:``DFMode``
+        (read/write) Alias of :attr:`DFMode`
 
     .. attribute:: BeamBlanked
 
@@ -178,7 +181,7 @@ attributes return ``(x, y)`` like tuples and expect iterable objects (``tuple``,
 
     .. attribute:: SpotsizeIndex
 
-        (read/write) Alias of :attr:``SpotSizeIndex``
+        (read/write) Alias of :attr:`SpotSizeIndex`
 
     .. attribute:: Intensity
 
@@ -888,10 +891,10 @@ Miscellaneous classes
 
     .. attribute:: InstrumentMode
 
-        (read/write) *nstrumentMode* TEM or STEM mode
+        (read/write) *InstrumentMode* TEM or STEM mode
 
         .. versionchanged:: 2.0
-            Returns *nstrumentMode* instance instead of integer.
+            Returns *InstrumentMode* instance instead of integer.
 
 
 .. class:: BlankerShutter

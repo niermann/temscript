@@ -289,5 +289,44 @@ class RemoteMicroscope(BaseMicroscope):
     def set_screen_position(self, mode):
         self._request_with_json_body("PUT", "/v1/screen_position", mode)
 
+    def get_illumination_mode(self):
+        return self._request("GET", "/v1/illumination_mode")[1]
+
+    def set_illumination_mode(self, mode):
+        self._request_with_json_body("PUT", "/v1/illumination_mode", mode)
+
+    def get_condenser_mode(self):
+        return self._request("GET", "/v1/condenser_mode")[1]
+
+    def set_condenser_mode(self, mode):
+        self._request_with_json_body("PUT", "/v1/condenser_mode", mode)
+
+    def get_spot_size_index(self):
+        return self._request("GET", "/v1/spot_size_index")[1]
+
+    def set_spot_size_index(self, index):
+        self._request_with_json_body("PUT", "/v1/spot_size_index", index)
+
+    def get_dark_field_mode(self):
+        return self._request("GET", "/v1/dark_field_mode")[1]
+
+    def set_dark_field_mode(self, mode):
+        self._request_with_json_body("PUT", "/v1/dark_field_mode", mode)
+
+    def get_beam_blanked(self):
+        return self._request("GET", "/v1/beam_blanked")[1]
+
+    def set_beam_blanked(self, mode):
+        self._request_with_json_body("PUT", "/v1/beam_blanked", mode)
+
+    def is_stem_available(self):
+        return self._request("GET", "/v1/stem_available")[1]
+
+    def get_instrument_mode(self):
+        return self._request("GET", "/v1/instrument_mode")[1]
+
+    def set_instrument_mode(self, mode):
+        self._request_with_json_body("PUT", "/v1/instrument_mode", mode)
+
     def get_state(self):
         return self._request("GET", "/v1/state")[1]

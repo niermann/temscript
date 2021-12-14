@@ -47,9 +47,9 @@ def try_update_enum(dest, source, key, enum_type, ignore_errors=False):
     return True
 
 
-def unpack_enums(map):
+def unpack_enums(mapping):
     result = {}
-    for key, value in map.items():
+    for key, value in mapping.items():
         if isinstance(value, Enum):
             value = value.name
         result[key] = value
@@ -60,7 +60,8 @@ class NullMicroscope(BaseMicroscope):
     """
     Microscope-like class which emulates an microscope.
 
-    :param wait_exposure: Whether the acquire calls waits the exposure time until returning, emulating the timing of the real microscope
+    :param wait_exposure: Whether the acquire calls waits the exposure time until returning, emulating
+        the timing of the real microscope
     :type wait_exposure: bool
     :param voltage: High tension value the microscope report in kV
     :type voltage: float
@@ -72,9 +73,12 @@ class NullMicroscope(BaseMicroscope):
     CCD_SIZE = 2048
     CCD_BINNINGS = [1, 2, 4, 8]
 
+    NORMALIZATION_MODES = ("SPOTSIZE", "INTENSITY", "CONDENSER", "MINI_CONDENSER", "OBJECTIVE", "PROJECTOR",
+                           "OBJECTIVE_CONDENSER", "OBJECTIVE_PROJECTOR", "ALL")
+
     def __init__(self, wait_exposure=None, voltage=200.0):
         self._column_valves = False
-        self._stage_pos = { 'x': 0.0, 'y': 0.0, 'z': 0.0, 'a': 0.0, 'b': 0.0 }
+        self._stage_pos = {'x': 0.0, 'y': 0.0, 'z': 0.0, 'a': 0.0, 'b': 0.0}
         self._wait_exposure = bool(wait_exposure) if wait_exposure is not None else True
         self._ccd_param = {
             "image_size": AcqImageSize.FULL,
@@ -100,10 +104,15 @@ class NullMicroscope(BaseMicroscope):
         self._diffraction_shift = np.zeros(2, dtype=float)
         self._projection_sub_mode = ProjectionSubMode.SA
         self._projection_mode = ProjectionMode.IMAGING
+        self._illumination_mode = IlluminationMode.MICROPROBE
+        self._condenser_mode = CondenserMode.PARALLEL
+        self._spot_size = 1
         self._magnification_index = 10
         self._defocus = 0.0
         self._intensity = 0.0
         self._screen_position = ScreenPosition.DOWN
+        self._dark_field_mode = DarkFieldMode.OFF
+        self._beam_blanked = False
 
     def get_family(self):
         return "NULL"
@@ -158,7 +167,7 @@ class NullMicroscope(BaseMicroscope):
 
     def get_cameras(self):
         return {
-            "CCD" : {
+            "CCD": {
                 "type": "CAMERA",
                 "width": self.CCD_SIZE,
                 "height": self.CCD_SIZE,
@@ -203,7 +212,8 @@ class NullMicroscope(BaseMicroscope):
         # Not implemented: raise error on unknown keys in param
         param = dict(param)
         try_update_enum(self._stem_acq_param, param, 'image_size', AcqImageSize, ignore_errors=ignore_errors)
-        try_update(self._stem_acq_param, param, 'dwell_time(s)', cast=float, min_value=1e-9, ignore_errors=ignore_errors)
+        try_update(self._stem_acq_param, param, 'dwell_time(s)', cast=float, min_value=1e-9,
+                   ignore_errors=ignore_errors)
         try_update(self._stem_acq_param, param, 'image_size', cast=int, min_value=1, ignore_errors=ignore_errors)
         if not ignore_errors and param:
             raise ValueError("Unknown keys in parameter dictionary.")
@@ -244,11 +254,13 @@ class NullMicroscope(BaseMicroscope):
     def set_beam_tilt(self, tilt):
         tilt = np.atleast_1d(tilt)
         self._beam_tilt[...] = tilt
+        if np.allclose(self._beam_tilt, 0.0):
+            self._dark_field_mode = DarkFieldMode.OFF
+        elif self._dark_field_mode != DarkFieldMode.OFF:
+            self._dark_field_mode = DarkFieldMode.CARTESIAN
 
     def normalize(self, mode="ALL"):
-        KNOWN_MODES = ["SPOTSIZE", "INTENSITY", "CONDENSER", "MINI_CONDENSER", "OBJECTIVE", "PROJECTOR",
-                       "OBJECTIVE_CONDENSER", "OBJECTIVE_PROJECTOR", "ALL"]
-        if mode.upper() not in KNOWN_MODES:
+        if mode.upper() not in NullMicroscope.NORMALIZATION_MODES:
             raise ValueError("Unknown normalization mode: %s" % mode)
 
     def get_projection_sub_mode(self):
@@ -327,3 +339,47 @@ class NullMicroscope(BaseMicroscope):
     def set_screen_position(self, mode):
         mode = parse_enum(ScreenPosition, mode)
         self._screen_position = mode
+
+    def get_illumination_mode(self):
+        return self._illumination_mode.name
+
+    def set_illumination_mode(self, mode):
+        mode = parse_enum(IlluminationMode, mode)
+        self._illumination_mode = mode
+
+    def get_condenser_mode(self):
+        return self._condenser_mode.name
+
+    def set_condenser_mode(self, mode):
+        mode = parse_enum(CondenserMode, mode)
+        self._condenser_mode = mode
+
+    def get_spot_size_index(self):
+        return self._spot_size
+
+    def set_spot_size_index(self, index):
+        self._spot_size = min(max(index, 1), 11)
+
+    def get_dark_field_mode(self):
+        return self._dark_field_mode.name
+
+    def set_dark_field_mode(self, mode):
+        mode = parse_enum(DarkFieldMode, mode)
+        self._dark_field_mode = mode
+
+    def get_beam_blanked(self):
+        return self._beam_blanked
+
+    def set_beam_blanked(self, mode):
+        self._beam_blanked = bool(mode)
+
+    def is_stem_available(self):
+        return False
+
+    def get_instrument_mode(self):
+        return InstrumentMode.TEM
+
+    def set_instrument_mode(self, mode):
+        mode = parse_enum(InstrumentMode, mode)
+        if mode != InstrumentMode.TEM:
+            raise ValueError("STEM not available.")

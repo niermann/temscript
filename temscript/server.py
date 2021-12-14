@@ -14,11 +14,13 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
                       "projection_mode", "projection_mode_string", "magnification_index", "indicated_camera_length",
                       "indicated_magnification", "defocus", "objective_excitation", "intensity", "objective_stigmator",
                       "condenser_stigmator", "diffraction_shift", "screen_current", "screen_position",
-                      'optics_state', 'state')
+                      "illumination_mode", "condenser_mode", "spot_size_index", "dark_field_mode", "beam_blanked",
+                      "instrument_mode", 'optics_state', 'state')
 
     PUT_V1_FORWARD = ("image_shift", "beam_shift", "beam_tilt", "projection_mode", "magnification_index",
                       "defocus", "intensity", "diffraction_shift", "objective_stigmator", "condenser_stigmator",
-                      "screen_position")
+                      "screen_position", "illumination_mode", "condenser_mode", "spot_size_index", "dark_field_mode",
+                      "beam_blanked", "instrument_mode")
 
     def get_microscope(self):
         """Return microscope object from server."""
@@ -83,6 +85,8 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             response = self.get_microscope().acquire(*detectors)
             if MIME_TYPE_PICKLE not in self.get_accept_types():
                 response = {key: pack_array(value) for key, value in response.items()}
+        elif endpoint == "stem_available":
+            response = self.get_microscope().is_stem_available()
         else:
             raise KeyError("Unknown endpoint: '%s'" % endpoint)
         return response
@@ -183,9 +187,12 @@ def run_server(argv=None):
     """
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--port", type=int, default=8080, help="Specify port on which the server is listening")
-    parser.add_argument("--host", type=str, default='', help="Specify host address on which the the server is listening")
-    parser.add_argument("--null", action='store_true', default=False, help="Use NullMicroscope instead of local microscope as backend")
+    parser.add_argument("-p", "--port", type=int, default=8080,
+                        help="Specify port on which the server is listening")
+    parser.add_argument("--host", type=str, default='',
+                        help="Specify host address on which the the server is listening")
+    parser.add_argument("--null", action='store_true', default=False,
+                        help="Use NullMicroscope instead of local microscope as backend")
     args = parser.parse_args(argv)
 
     if args.null:

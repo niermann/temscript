@@ -77,6 +77,13 @@ print("Microscope.get_diffraction_shift():", microscope.get_diffraction_shift())
 print("Microscope.get_intensity():", microscope.get_intensity())
 print("Microscope.get_screen_current():", microscope.get_screen_current())
 print("Microscope.get_screen_position():", microscope.get_screen_position())
+print("Microscope.get_illumination_mode():", microscope.get_illumination_mode())
+print("Microscope.get_condenser_mode():", microscope.get_condenser_mode())
+print("Microscope.get_spot_size_index():", microscope.get_spot_size_index())
+print("Microscope.get_dark_field_mode():", microscope.get_dark_field_mode())
+print("Microscope.get_beam_blanked():", microscope.get_beam_blanked())
+print("Microscope.is_stem_available():", microscope.is_stem_available())
+print("Microscope.get_instrument_mode():", microscope.get_instrument_mode())
 
 print("Microscope.get_state():", microscope.get_state())
 
