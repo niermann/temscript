@@ -828,6 +828,9 @@ class BaseMicroscope(ABC):
 
         :rtype: Literal['PARALLEL', 'PROBE']
 
+        .. note::
+            This method is only available on microscopes of the ``TITAN`` family. 
+
         .. versionadded:: 2.0.0
         """
         raise NotImplementedError
@@ -839,7 +842,144 @@ class BaseMicroscope(ABC):
 
         :type mode: Literal['PARALLEL', 'PROBE']
 
+        .. note::
+            This method is only available on microscopes of the ``TITAN`` family. 
+
         .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_stem_magnification(self):
+        """
+        Get STEM magnification
+
+        :rtype: float
+
+        .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_stem_magnification(self, value):
+        """
+        Set STEM magnification
+
+        :type value: float
+
+        .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_stem_rotation(self):
+        """
+        Get STEM rotation (radian)
+
+        :rtype: float
+
+        .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_stem_rotation(self, value):
+        """
+        Set STEM rotation (radian)
+
+        :type value: float
+
+        .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_illuminated_area(self):
+        """
+        Return illuminated area. 
+        
+        TEM scripting manual states the result is in meters, however it is unclear what is
+        actually meant (diameter?)
+        
+        :rtype: float 
+        
+        .. note::
+            This method is only available on microscopes of the ``TITAN`` family.
+
+        .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_illuminated_area(self, value):
+        """
+        Set illuminated area.
+        
+        TEM scripting manual states the result is in meters, however it is unclear what is
+        actually meant (diameter?)
+        
+        :type value: float
+        
+        .. note::
+            This method is only available on microscopes of the ``TITAN`` family.
+
+        ..versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_probe_defocus(self):
+        """
+        Return probe defocus (meters).
+
+        :rtype: float
+
+        .. note::
+            This method is only available on microscopes of the ``TITAN`` family.
+
+        .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_probe_defocus(self, value):
+        """
+        Set probe defocus (meters).
+
+        :type value: float
+
+        .. note::
+            This method is only available on microscopes of the ``TITAN`` family.
+
+        ..versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_convergence_angle(self):
+        """
+        Return convergence angle (radian)
+
+        :rtype: float
+
+        .. note::
+            This method is only available on microscopes of the ``TITAN`` family.
+
+        .. versionadded:: 2.0.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_convergence_angle(self, value):
+        """
+        Set convergence angle (radian).
+
+        :type value: float
+
+        .. note::
+            This method is only available on microscopes of the ``TITAN`` family.
+
+        ..versionadded:: 2.0.0
         """
         raise NotImplementedError
 
@@ -870,7 +1010,7 @@ class BaseMicroscope(ABC):
         """
         Get dark field mode.
 
-        .. see::
+        .. note::
             :meth:`set_beam_tilt` might change this value.
 
         :rtype: Literal['OFF', 'CARTESIAN', 'CONICAL]
@@ -983,11 +1123,18 @@ class BaseMicroscope(ABC):
             "screen_position": self.get_screen_position(),
             "spot_size_index": self.get_spot_size_index(),
             "illumination_mode": self.get_illumination_mode(),
-            "condenser_mode": self.get_condenser_mode(),
             "beam_blanked": self.get_beam_blanked(),
             "stem_available": self.is_stem_available(),
             "instrument_mode": self.get_instrument_mode(),
         }
+        if self.get_family() == "TITAN":
+            state["condenser_mode"] = self.get_condenser_mode()
+            state["illuminated_area"] = self.get_illuminated_area()
+            state["convergence_angle"] = self.get_convergence_angle()
+            state["probe_defocus"] = self.get_probe_defocus()
+        if self.get_instrument_mode() == "STEM":
+            state["stem_magnification"] = self.get_stem_magnification()
+            state["stem_rotation"] = self.get_stem_rotation()
         return state
 
     def get_optics_state(self):

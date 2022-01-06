@@ -14,13 +14,15 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
                       "projection_mode", "projection_mode_string", "magnification_index", "indicated_camera_length",
                       "indicated_magnification", "defocus", "objective_excitation", "intensity", "objective_stigmator",
                       "condenser_stigmator", "diffraction_shift", "screen_current", "screen_position",
-                      "illumination_mode", "condenser_mode", "spot_size_index", "dark_field_mode", "beam_blanked",
+                      "illumination_mode", "condenser_mode", "illuminated_area", "probe_defocus", "convergence_angle",
+                      "stem_magnification", "stem_rotation", "spot_size_index", "dark_field_mode", "beam_blanked",
                       "instrument_mode", 'optics_state', 'state')
 
     PUT_V1_FORWARD = ("image_shift", "beam_shift", "beam_tilt", "projection_mode", "magnification_index",
                       "defocus", "intensity", "diffraction_shift", "objective_stigmator", "condenser_stigmator",
-                      "screen_position", "illumination_mode", "condenser_mode", "spot_size_index", "dark_field_mode",
-                      "beam_blanked", "instrument_mode")
+                      "screen_position", "illumination_mode", "spot_size_index", "dark_field_mode",
+                      "condenser_mode", "illuminated_area", "probe_defocus", "convergence_angle",
+                      "stem_magnification", "stem_rotation", "beam_blanked", "instrument_mode")
 
     def get_microscope(self):
         """Return microscope object from server."""

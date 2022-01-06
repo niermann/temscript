@@ -106,6 +106,11 @@ class NullMicroscope(BaseMicroscope):
         self._projection_mode = ProjectionMode.IMAGING
         self._illumination_mode = IlluminationMode.MICROPROBE
         self._condenser_mode = CondenserMode.PARALLEL
+        self._stem_magnification = 100000.0
+        self._stem_rotation = 0.0
+        self._illuminated_area = 1e-8
+        self._probe_defocus = 0.0
+        self._convergence_angle = 0.01
         self._spot_size = 1
         self._magnification_index = 10
         self._defocus = 0.0
@@ -353,6 +358,36 @@ class NullMicroscope(BaseMicroscope):
     def set_condenser_mode(self, mode):
         mode = parse_enum(CondenserMode, mode)
         self._condenser_mode = mode
+
+    def get_stem_magnification(self):
+        return self._stem_magnification
+
+    def set_stem_magnification(self, value):
+        self._stem_magnification = float(value)
+
+    def get_stem_rotation(self):
+        return self._stem_rotation
+
+    def set_stem_rotation(self, value):
+        self._stem_rotation = float(value)
+
+    def get_illuminated_area(self):
+        return self._illuminated_area
+
+    def set_illuminated_area(self, value):
+        self._illuminated_area = float(value)
+
+    def get_probe_defocus(self):
+        return self._probe_defocus
+
+    def set_probe_defocus(self, value):
+        self._probe_defocus = float(value)
+
+    def get_convergence_angle(self):
+        return self._convergence_angle
+
+    def set_convergence_angle(self, value):
+        self._convergence_angle = float(value)
 
     def get_spot_size_index(self):
         return self._spot_size

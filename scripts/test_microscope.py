@@ -49,7 +49,7 @@ for name in detectors.keys():
     print("Microscope.get_stem_detector_param(%s):" % name, microscope.get_stem_detector_param(name))
 
 # TODO: fails if not STEM
-#print("Microscope.get_stem_acquisition_param():", microscope.get_stem_acquisition_param())
+# print("Microscope.get_stem_acquisition_param():", microscope.get_stem_acquisition_param())
 
 # Test invalid camera
 try:
@@ -78,12 +78,20 @@ print("Microscope.get_intensity():", microscope.get_intensity())
 print("Microscope.get_screen_current():", microscope.get_screen_current())
 print("Microscope.get_screen_position():", microscope.get_screen_position())
 print("Microscope.get_illumination_mode():", microscope.get_illumination_mode())
-print("Microscope.get_condenser_mode():", microscope.get_condenser_mode())
 print("Microscope.get_spot_size_index():", microscope.get_spot_size_index())
 print("Microscope.get_dark_field_mode():", microscope.get_dark_field_mode())
 print("Microscope.get_beam_blanked():", microscope.get_beam_blanked())
 print("Microscope.is_stem_available():", microscope.is_stem_available())
 print("Microscope.get_instrument_mode():", microscope.get_instrument_mode())
+
+print("Microscope.get_condenser_mode():", microscope.get_condenser_mode())
+print("Microscope.get_convergence_angle():", microscope.get_convergence_angle())
+print("Microscope.get_probe_defocus():", microscope.get_probe_defocus())
+print("Microscope.get_illuminated_area():", microscope.get_illuminated_area())
+
+# TODO: fails if not STEM
+# print("Microscope.get_stem_magnification():", microscope.get_stem_magnification())
+# print("Microscope.get_stem_rotation():", microscope.get_stem_rotation())
 
 print("Microscope.get_state():", microscope.get_state())
 
@@ -133,4 +141,3 @@ if cameras and (args.ccd or args.all):
         import matplotlib.pyplot as plt
         plt.imshow(images[ccd], cmap="gray")
         plt.show()
-

@@ -365,6 +365,36 @@ class Microscope(BaseMicroscope):
         mode = parse_enum(CondenserMode, mode)
         self._tem_illumination.CondenserMode = mode
 
+    def get_stem_magnification(self):
+        return self._tem_illumination.StemMagnification
+
+    def set_stem_magnification(self, value):
+        self._tem_illumination.StemMagnification = value
+
+    def get_stem_rotation(self):
+        return self._tem_illumination.StemRotation
+
+    def set_stem_rotation(self, value):
+        self._tem_illumination.StemRotation = value
+
+    def get_illuminated_area(self):
+        return self._tem_illumination.IlluminatedArea
+
+    def set_illuminated_area(self, value):
+        self._tem_illumination.IlluminatedArea = value
+
+    def get_probe_defocus(self):
+        return self._tem_illumination.ProbeDefocus
+
+    def set_probe_defocus(self, value):
+        self._tem_illumination.ProbeDefocus = value
+
+    def get_convergence_angle(self):
+        return self._tem_illumination.ConvergenceAngle
+
+    def set_convergence_angle(self, value):
+        self._tem_illumination.ConvergenceAngle = value
+
     def get_spot_size_index(self):
         return self._tem_illumination.SpotSizeIndex
 

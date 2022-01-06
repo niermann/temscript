@@ -124,7 +124,8 @@ class RemoteMicroscope(BaseMicroscope):
             encoded_body = encoder.encode(body).encode("utf-8")
         else:
             encoded_body = None
-        return self._request(method, url, body=encoded_body, query=query, headers=headers, accepted_response=accepted_response)
+        return self._request(method, url, body=encoded_body, query=query, headers=headers,
+                             accepted_response=accepted_response)
 
     def get_family(self):
         return self._request("GET", "/v1/family")[1]
@@ -300,6 +301,36 @@ class RemoteMicroscope(BaseMicroscope):
 
     def set_condenser_mode(self, mode):
         self._request_with_json_body("PUT", "/v1/condenser_mode", mode)
+
+    def get_stem_magnification(self):
+        return self._request("GET", "/v1/stem_magnification")[1]
+
+    def set_stem_magnification(self, value):
+        self._request_with_json_body("PUT", "/v1/stem_magnification", value)
+
+    def get_stem_rotation(self):
+        return self._request("GET", "/v1/stem_rotation")[1]
+
+    def set_stem_rotation(self, value):
+        self._request_with_json_body("PUT", "/v1/stem_rotation", value)
+
+    def get_illuminated_area(self):
+        return self._request("GET", "/v1/illuminated_area")[1]
+
+    def set_illuminated_area(self, value):
+        self._request_with_json_body("PUT", "/v1/illuminated_area", value)
+
+    def get_probe_defocus(self):
+        return self._request("GET", "/v1/probe_defocus")[1]
+
+    def set_probe_defocus(self, value):
+        self._request_with_json_body("PUT", "/v1/probe_defocus", value)
+
+    def get_convergence_angle(self):
+        return self._request("GET", "/v1/convergence_angle")[1]
+
+    def set_convergence_angle(self, value):
+        self._request_with_json_body("PUT", "/v1/convergence_angle", value)
 
     def get_spot_size_index(self):
         return self._request("GET", "/v1/spot_size_index")[1]
