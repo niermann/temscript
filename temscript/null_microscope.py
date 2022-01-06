@@ -412,7 +412,7 @@ class NullMicroscope(BaseMicroscope):
         return False
 
     def get_instrument_mode(self):
-        return InstrumentMode.TEM
+        return InstrumentMode.TEM.name
 
     def set_instrument_mode(self, mode):
         mode = parse_enum(InstrumentMode, mode)
