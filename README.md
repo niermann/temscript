@@ -34,7 +34,17 @@ On Windows platforms the package provides the Python wrapper
 to the scripting COM interface. However, trying to instantiate this wrapper
 will fail, if the scripting COM classes are not installed locally.
 
-### Installation from wheels file (using pip)
+### Installation from PyPI (using pip)
+
+This assumes you have connection to the internet. 
+
+Execute from the command line (assuming you have your python interpreter in the path, this might require superuser or 
+administrator privileges):
+    
+    python3 -m pip install --upgrade pip
+    python3 -m pip install temscript
+
+### Offline-Installation from wheels file (using pip)
 
 This assumes you have downloaded the wheels file <downloaded-wheels-file>.whl 
 
