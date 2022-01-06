@@ -16,6 +16,8 @@ Version 2.0.0
 * Deprecation of the use of 'speed' and 'method' keywords in position dictionary of the 'set_stage_position' method.
 * Abstract base class for high level interface
 * Test scripts
+* More illumination related functions
+* TEM/STEM mode control
 * Several small improvements and fixes
 
 Version 1.0.10

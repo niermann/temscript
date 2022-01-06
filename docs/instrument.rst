@@ -1,4 +1,4 @@
-.. module:: temscript
+.. currentmodule:: temscript
 
 .. _instrument:
 
@@ -254,12 +254,12 @@ Interface classes
 
     .. attribute:: ProbeDefocus
 
-        (read/write) *float* Probe defocus (meters) Requires probe condensor mode.
+        (read/write) *float* Probe defocus (meters) Requires probe condenser mode.
         (Available only on Titan and only in `CondenserMode.PROBE` mode).
 
     .. attribute:: ConvergenceAngle
 
-        (read/write) *float* Convergence angle (radians) Requires probe condensor mode.
+        (read/write) *float* Convergence angle (radians) Requires probe condenser mode.
         (Available only on Titan and only in `CondenserMode.PROBE` mode).
 
     .. method:: Normalize(mode)

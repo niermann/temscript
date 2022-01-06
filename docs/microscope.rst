@@ -1,4 +1,4 @@
-.. module:: temscript
+.. currentmodule:: temscript
 
 .. _microscope:
 
