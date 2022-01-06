@@ -104,4 +104,4 @@ def gzip_encode(content):
 
 def gzip_decode(content):
     """Decode GZIP encoded bytes object"""
-    return zlib.decompress(content, wbits=16 + zlib.MAX_WBITS)
+    return zlib.decompress(content, 16 + zlib.MAX_WBITS)    # No keyword arguments until Python 3.6

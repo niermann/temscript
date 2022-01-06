@@ -415,7 +415,7 @@ class Microscope(BaseMicroscope):
         self._tem_illumination.BeamBlanked = mode
 
     def is_stem_available(self):
-        return self._tem_control.StemAvailabe
+        return self._tem_control.StemAvailable
 
     def get_instrument_mode(self):
         return self._tem_control.InstrumentMode.name
