@@ -73,7 +73,11 @@ STAGE_AXES = frozenset(('x', 'y', 'z', 'a', 'b'))
 
 class BaseMicroscope(ABC):
     """
-    Base class for Microscope classes. Do not use directly.
+    Abstract base class for microscope classes.
+
+    Do not use `BaseMicroscope` directly, instead instantiate
+    one of the subclasses, like :class:`Microscope` or :class:`RemoteMicroscope`. The Subclasses
+    implement all the abstract methods.
     """
     @abstractmethod
     def get_family(self):
