@@ -30,7 +30,10 @@ class Microscope(BaseMicroscope):
         self._tem_vacuum = tem.Vacuum
         self._tem_camera = tem.Camera
         self._tem_control = tem.InstrumentModeControl
-        self._family = tem.Configuration.ProductFamily
+        try:
+            self._family = tem.Configuration.ProductFamily
+        except Exception:
+            self._family = ProductFamily.UNDEFINED
 
     def get_family(self):
         return ProductFamily(self._family).name
