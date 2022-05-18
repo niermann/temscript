@@ -26,7 +26,7 @@ class LongProperty(BaseProperty):
 
     def __get__(self, obj, objtype=None):
         if self._get_index is None:
-            raise AttributeError("Attribute %sis not readable" % self._name)
+            raise AttributeError("Attribute %s is not readable" % self._name)
         result = ctypes.c_long(-1)
         prototype = ctypes.WINFUNCTYPE(ctypes.HRESULT, ctypes.c_void_p)(self._get_index, "get_property")
         prototype(obj.get(), ctypes.byref(result))
@@ -34,7 +34,7 @@ class LongProperty(BaseProperty):
 
     def __set__(self, obj, value):
         if self._put_index is None:
-            raise AttributeError("Attribute %sis not writable" % self._name)
+            raise AttributeError("Attribute %s is not writable" % self._name)
         value = int(value)
         prototype = ctypes.WINFUNCTYPE(ctypes.HRESULT, ctypes.c_long)(self._put_index, "put_property")
         prototype(obj.get(), value)
@@ -43,7 +43,7 @@ class LongProperty(BaseProperty):
 class VariantBoolProperty(BaseProperty):
     def __get__(self, obj, objtype=None):
         if self._get_index is None:
-            raise AttributeError("Attribute %sis not readable" % self._name)
+            raise AttributeError("Attribute %s is not readable" % self._name)
         result = ctypes.c_short(-1)
         prototype = ctypes.WINFUNCTYPE(ctypes.HRESULT, ctypes.c_void_p)(self._get_index, "get_property")
         prototype(obj.get(), ctypes.byref(result))
@@ -51,7 +51,7 @@ class VariantBoolProperty(BaseProperty):
 
     def __set__(self, obj, value):
         if self._put_index is None:
-            raise AttributeError("Attribute %sis not writable" % self._name)
+            raise AttributeError("Attribute %s is not writable" % self._name)
         bool_value = 0xffff if value else 0x0000
         prototype = ctypes.WINFUNCTYPE(ctypes.HRESULT, ctypes.c_short)(self._put_index, "put_property")
         prototype(obj.get(), bool_value)
@@ -60,7 +60,7 @@ class VariantBoolProperty(BaseProperty):
 class DoubleProperty(BaseProperty):
     def __get__(self, obj, objtype=None):
         if self._get_index is None:
-            raise AttributeError("Attribute %sis not readable" % self._name)
+            raise AttributeError("Attribute %s is not readable" % self._name)
         result = ctypes.c_double(-1)
         prototype = ctypes.WINFUNCTYPE(ctypes.HRESULT, ctypes.c_void_p)(self._get_index, "get_property")
         prototype(obj.get(), ctypes.byref(result))
@@ -68,7 +68,7 @@ class DoubleProperty(BaseProperty):
 
     def __set__(self, obj, value):
         if self._put_index is None:
-            raise AttributeError("Attribute %sis not writable" % self._name)
+            raise AttributeError("Attribute %s is not writable" % self._name)
         value = float(value)
         prototype = ctypes.WINFUNCTYPE(ctypes.HRESULT, ctypes.c_double)(self._put_index, "put_property")
         prototype(obj.get(), value)
@@ -77,7 +77,7 @@ class DoubleProperty(BaseProperty):
 class StringProperty(BaseProperty):
     def __get__(self, obj, objtype=None):
         if self._get_index is None:
-            raise AttributeError("Attribute %sis not readable" % self._name)
+            raise AttributeError("Attribute %s is not readable" % self._name)
         result = BStr()
         prototype = ctypes.WINFUNCTYPE(ctypes.HRESULT, ctypes.c_void_p)(self._get_index, "get_property")
         prototype(obj.get(), result.byref())
@@ -85,7 +85,7 @@ class StringProperty(BaseProperty):
 
     def __set__(self, obj, value):
         if self._put_index is None:
-            raise AttributeError("Attribute %sis not writable" % self._name)
+            raise AttributeError("Attribute %s is not writable" % self._name)
         value = BStr(str(value))
         prototype = ctypes.WINFUNCTYPE(ctypes.HRESULT, ctypes.c_void_p)(self._put_index, "put_property")
         prototype(obj.get(), BStr(value).get())
@@ -100,7 +100,7 @@ class EnumProperty(BaseProperty):
 
     def __get__(self, obj, objtype=None):
         if self._get_index is None:
-            raise AttributeError("Attribute %sis not readable" % self._name)
+            raise AttributeError("Attribute %s is not readable" % self._name)
         result = ctypes.c_int(-1)
         prototype = ctypes.WINFUNCTYPE(ctypes.HRESULT, ctypes.c_void_p)(self._get_index, "get_property")
         prototype(obj.get(), ctypes.byref(result))
@@ -108,7 +108,7 @@ class EnumProperty(BaseProperty):
 
     def __set__(self, obj, value):
         if self._put_index is None:
-            raise AttributeError("Attribute %sis not writable" % self._name)
+            raise AttributeError("Attribute %s is not writable" % self._name)
         value = int(value)
         prototype = ctypes.WINFUNCTYPE(ctypes.HRESULT, ctypes.c_long)(self._put_index, "put_property")
         prototype(obj.get(), value)
