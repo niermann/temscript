@@ -18,7 +18,7 @@ def set_attr_from_dict(obj, attr_name, mapping, key, ignore_errors=False):
     If no such *key* is in the dict, nothing is done.
     Any TypeErrors or ValueErrors are silently ignored, if *ignore_errors is set.
 
-    Returns true is *key* was present in *map* and the attribute was successfully set. Otherwise False is returned.
+    Returns true is *key* was present in *map* and the attribute was successfully set. Otherwise, False is returned.
     """
     try:
         value = mapping.pop(key)
@@ -43,7 +43,7 @@ def set_enum_attr_from_dict(obj, attr_name, enum_type, mapping, key, ignore_erro
     If no such *key* is in the dict nothing is done.
     Any TypeErrors or ValueErrors are silently ignored, if *ignore_errors is set.
 
-    Returns true is *key* was present in *map* and the attribute was successfully set. Otherwise False is returned.
+    Returns true is *key* was present in *map* and the attribute was successfully set. Otherwise, False is returned.
     """
     try:
         value = mapping.pop(key)
@@ -81,7 +81,7 @@ class BaseMicroscope(ABC):
     """
     @abstractmethod
     def get_family(self):
-        """Return product family (see :class:`ProductFamily`): "TITAN", "TECNAI", ..."""
+        """Return product family (see :class:`ProductFamily` for values): "TITAN", "TECNAI", ..."""
         raise NotImplementedError
 
     @abstractmethod

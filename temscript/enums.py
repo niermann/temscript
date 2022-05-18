@@ -182,7 +182,7 @@ class ProductFamily(IntEnum):
     UNDEFINED = -1
     TECNAI = 0
     TITAN = 1
-    FUTURE_2 = 2    # Future family #2
+    TALOS = 2
     FUTURE_3 = 3    # Future family #3
     FUTURE_4 = 4    # Future family #4
     FUTURE_5 = 5    # Future family #5
@@ -190,6 +190,7 @@ class ProductFamily(IntEnum):
     FUTURE_7 = 7    # Future family #7
     FUTURE_8 = 8    # Future family #8
     FUTURE_9 = 9    # Future family #9
+    FUTURE_2 = TALOS    # Alias
 
 
 class ScreenPosition(IntEnum):

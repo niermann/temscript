@@ -4,6 +4,7 @@ Changelog
 Version 2.0.1
 ^^^^^^^^^^^^^
 
+* Added Talos as ProductFamily
 * Added more graceful behavior for unsupported ProductFamily query and unknown future families.
 
 Version 2.0.0
