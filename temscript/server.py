@@ -16,7 +16,7 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
                       "condenser_stigmator", "diffraction_shift", "screen_current", "screen_position",
                       "illumination_mode", "condenser_mode", "illuminated_area", "probe_defocus", "convergence_angle",
                       "stem_magnification", "stem_rotation", "spot_size_index", "dark_field_mode", "beam_blanked",
-                      "instrument_mode", 'optics_state', 'state')
+                      "instrument_mode", 'optics_state', 'state', 'column_valves_open')
 
     PUT_V1_FORWARD = ("image_shift", "beam_shift", "beam_tilt", "projection_mode", "magnification_index",
                       "defocus", "intensity", "diffraction_shift", "objective_stigmator", "condenser_stigmator",
@@ -126,6 +126,13 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             response = self.get_microscope().set_detector_param(name, decoded_content)
         elif endpoint == "normalize":
             self.get_microscope().normalize(decoded_content)
+        elif endpoint == "column_valves_open":
+            state = bool(decoded_content)
+            assert isinstance(self.server, MicroscopeServer)
+            if self.server.allow_column_valves_open or not state:
+                self.get_microscope().set_column_valves_open(state)
+            else:
+                raise ValueError("Opening of column valves is prohibited.")
         else:
             raise KeyError("Unknown endpoint: '%s'" % endpoint)
         return response
@@ -166,17 +173,19 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
 
 
 class MicroscopeServer(HTTPServer, object):
-    def __init__(self, server_address=('', 8080), microscope_factory=None):
+    def __init__(self, server_address=('', 8080), microscope_factory=None, allow_column_valves_open=True):
         """
         Run a microscope server.
 
         :param server_address: (address, port) tuple
         :param microscope_factory: callable creating the BaseMicroscope instance to use
+        :param allow_column_valves_open: Allow remote client to open column valves
         """
         if microscope_factory is None:
             from .microscope import Microscope
             microscope_factory = Microscope
         self.microscope = microscope_factory()
+        self.allow_column_valves_open = allow_column_valves_open
         super(MicroscopeServer, self).__init__(server_address, MicroscopeHandler)
 
 

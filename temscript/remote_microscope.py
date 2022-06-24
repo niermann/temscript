@@ -142,6 +142,12 @@ class RemoteMicroscope(BaseMicroscope):
     def get_vacuum(self):
         return self._request("GET", "/v1/vacuum")[1]
 
+    def get_column_valves_open(self):
+        return self._request("GET", "/v1/column_valves_open")[1]
+
+    def set_column_valves_open(self, state):
+        self._request_with_json_body("PUT", "/v1/column_valves_open", state)
+
     def get_stage_holder(self):
         return self._request("GET", "/v1/stage_holder")[1]
 

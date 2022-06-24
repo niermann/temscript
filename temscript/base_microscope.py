@@ -129,6 +129,29 @@ class BaseMicroscope(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def get_column_valves_open(self):
+        """
+        Returns state of the column valves.
+
+        :return: `True`, if column valves are open. `False`, otherwise.
+
+        .. versionadded: 2.1.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_column_valves_open(self, state):
+        """
+        Set state of the column valves. The column valves are opened, if `True` is passes as *state*
+
+        :param state: `True`, if column valves should be opened. `False`, if they should be closed.
+        :type state: bool
+
+        .. versionadded: 2.0.1
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def get_stage_holder(self):
         """Return holder currently in stage (see :class:`StageHolderType`)"""
         raise NotImplementedError

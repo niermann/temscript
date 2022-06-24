@@ -141,6 +141,12 @@ class NullMicroscope(BaseMicroscope):
             "gauges(Pa)": {},
         }
 
+    def get_column_valves_open(self):
+        return self._column_valves
+
+    def set_column_valves_open(self, state):
+        self._column_valves = bool(state)
+
     def get_stage_holder(self):
         return StageHolderType.SINGLE_TILT.name
 

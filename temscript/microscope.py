@@ -67,10 +67,16 @@ class Microscope(BaseMicroscope):
                 gauges[name] = g.Pressure
         return {
             "status": VacuumStatus(self._tem_vacuum.Status).name,
-            "column_valves_open": self._tem_vacuum.ColumnValvesOpen,
+            "column_valves_open": self.get_column_valves_open(),
             "pvp_running": self._tem_vacuum.PVPRunning,
             "gauges(Pa)": gauges,
         }
+
+    def get_column_valves_open(self):
+        return self._tem_vacuum.ColumnValvesOpen
+
+    def set_column_valves_open(self, state):
+        self._tem_vacuum.ColumnValvesOpen = state
 
     def get_stage_holder(self):
         return self._tem_stage.Holder.name

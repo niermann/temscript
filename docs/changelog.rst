@@ -6,6 +6,7 @@ Version 2.0.1
 
 * Added Talos as ProductFamily
 * Added more graceful behavior for unsupported ProductFamily query and unknown future families.
+* Added column valves state to Microscope classes.
 
 Version 2.0.0
 ^^^^^^^^^^^^^
