@@ -641,7 +641,11 @@ class BaseMicroscope(ABC):
     def get_indicated_camera_length(self):
         """
         Return (indicated) camera length in meters in diffraction modes.
-        If microscope is in imaging mode, 0 is returned.
+
+        .. note::
+            The scripting manual states, that this function always returns 0,
+            if microscope is in imaging mode. In STEM mode this
+            function works reportedly nevertheless.
 
         .. versionadded:: 1.0.9
         """
@@ -651,7 +655,11 @@ class BaseMicroscope(ABC):
     def get_indicated_magnification(self):
         """
         Return (indicated) magnification in imaging modes.
-        If microscope is in diffraction mode, 0 is returned.
+
+        .. note::
+            The scripting manual states, that this function always returns 0,
+            if microscope is in diffraction mode. In STEM mode this
+            function works reportedly nevertheless.
 
         .. note::
             On Titan 1.1 software this method returns 0.0 regardless of used mode. See :ref:`restrictions`.
