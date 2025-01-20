@@ -6,6 +6,7 @@ __all__ = 'UUID', 'CLSCTX_ALL', 'IUnknown', 'co_create_instance', 'SafeArray', '
 
 # COM constants
 COINIT_MULTITHREADED = 0
+COINIT_APARTMENTTHREADED = 2
 CLSCTX_ALL = 0x17
 
 
@@ -370,5 +371,27 @@ class SafeArray:
 
 
 _ole32 = ctypes.oledll.ole32
-_ole32.CoInitializeEx(None, ctypes.c_int(COINIT_MULTITHREADED))
 _oleauto = ctypes.windll.oleaut32
+
+def initialize_com(flags=None):
+    RPC_E_CHANGED_MODE = -2147417850
+
+    # The comtypes package allows to specify the apartment model by
+    # setting sys.coinit_flags in advance. We copy this behavior.
+    if flags is None:
+        import sys
+        flags = getattr(sys, "coinit_flags", None)
+
+    if flags is None:
+        # If we don't have explicit flags, try STA first and fall back to MTA
+        # if COM is already initialized to MTA.
+        try:
+            _ole32.CoInitializeEx(None, ctypes.c_int(COINIT_APARTMENTTHREADED))
+        except WindowsError as exc:
+            if exc.winerror == RPC_E_CHANGED_MODE:
+                _ole32.CoInitializeEx(None, ctypes.c_int(COINIT_MULTITHREADED))
+    else:
+        # Otherwise, use the apartment model we got
+        _ole32.CoInitializeEx(None, flags)
+
+initialize_com()
