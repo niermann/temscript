@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Version 2.1.0
+^^^^^^^^^^^^^
+
+* Changed default apartment model to COINIT_APARTMENTTHREADED to increase compatibility with comtypes
+* COM initialization respects setting from sys.coinit_flags
+
 Version 2.0.1
 ^^^^^^^^^^^^^
 

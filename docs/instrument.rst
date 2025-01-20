@@ -13,6 +13,13 @@ The interface is described in detail in the scripting manual of your microscope
 The manual is your ultimate reference, this documentation will only describe the
 python wrapper to the COM interface.
 
+The COM apartment model will automatically be initialized as ``COINIT_APARTMENTTHREADED``
+(this changed in Version 2.1.0, it was ``COINIT_MULTITHREADED`` before). However, if the
+apartment model was already initialized as ``COINIT_MULTITHREADED`` before `temscript`
+was imported, `temscript` will also work. If you want a specific apartment model, set the
+variable ``sys.coinit_flags`` before importing `temscript`.
+
+
 Enumerations
 ^^^^^^^^^^^^
 
