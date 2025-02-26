@@ -58,7 +58,7 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             else:
                 content_encoding = None
         except Exception as exc:
-            self.log_error("Exception raised during encoding of response: %s" % repr(exc))
+            self.log_error("Exception raised during encoding of response: %s", repr(exc))
             self.send_error(500, "Error handling request '%s': %s" % (self.path, str(exc)))
         else:
             self.send_response(200)
@@ -146,10 +146,10 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             else:
                 raise KeyError('Unknown API version: %s' % self.path)
         except KeyError as exc:
-            self.log_error("KeyError raised during handling of GET request '%s': %s" % (self.path, repr(exc)))
+            self.log_error("KeyError raised during handling of GET request '%s': %s", self.path, repr(exc))
             self.send_error(404, str(exc))
         except Exception as exc:
-            self.log_error("Exception raised during handling of GET request '%s': %s" % (self.path, repr(exc)))
+            self.log_error("Exception raised during handling of GET request '%s': %s", self.path, repr(exc))
             self.send_error(500, "Error handling request '%s': %s" % (self.path, str(exc)))
         else:
             self.build_response(response)
@@ -163,10 +163,10 @@ class MicroscopeHandler(BaseHTTPRequestHandler):
             else:
                 raise KeyError('Unknown API version: %s' % self.path)
         except KeyError as exc:
-            self.log_error("KeyError raised during handling of GET request '%s': %s" % (self.path, repr(exc)))
+            self.log_error("KeyError raised during handling of GET request '%s': %s" , self.path, repr(exc))
             self.send_error(404, str(exc))
         except Exception as exc:
-            self.log_error("Exception raised during handling of GET request '%s': %s" % (self.path, repr(exc)))
+            self.log_error("Exception raised during handling of GET request '%s': %s" , self.path, repr(exc))
             self.send_error(500, "Error handling request '%s': %s" % (self.path, str(exc)))
         else:
             self.build_response(response)
