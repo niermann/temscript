@@ -79,7 +79,10 @@ class Microscope(BaseMicroscope):
         self._tem_vacuum.ColumnValvesOpen = state
 
     def get_stage_holder(self):
-        return self._tem_stage.Holder.name
+        try:
+            return self._tem_stage.Holder.name
+        except OSError:
+            return ""
 
     def get_stage_status(self):
         return self._tem_stage.Status.name
