@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Version 2.1.1
+^^^^^^^^^^^^^
+
+* Fixed error handling in server
+* Don't throw error for get_stage_holder(), if no holder inserted
+
 Version 2.1.0
 ^^^^^^^^^^^^^
 
