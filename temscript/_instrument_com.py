@@ -28,7 +28,7 @@ class LongProperty(BaseProperty):
         if self._get_index is None:
             raise AttributeError("Attribute %s is not readable" % self._name)
         result = ctypes.c_long(-1)
-        prototype = ctypes.WINFUNCTYPE(ctypes.HRESULT, ctypes.c_void_p)(self._get_index, "get_property")
+        prototype = ctypes.WINFUNCTYPE(ctypes.HRESULT, ctypes.POINTER(ctypes.c_long))(self._get_index, "get_property")
         prototype(obj.get(), ctypes.byref(result))
         return result.value
 

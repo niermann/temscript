@@ -4,6 +4,8 @@
 #include <iostream>
 #include "ITemscriptMockObject.h"
 
+#define DEBUG_STREAM()    std::cout
+
 // ============================================================
 //  Debug helpers
 // ============================================================
@@ -108,6 +110,8 @@ class TemscriptMockObject : public ITemscriptMockObject
 public:
     TemscriptMockObject() : refCount(1), value(0)
     {
+        DEBUG_STREAM() << "TemscriptMockObject created @" << this << "\n";
+
         child = new ChildMockObject();
         InterlockedIncrement(&g_objCount);
     }
@@ -137,12 +141,15 @@ public:
 
     ULONG STDMETHODCALLTYPE AddRef() override
     {
-        return InterlockedIncrement(&refCount);
+        ULONG r = InterlockedIncrement(&refCount);
+        DEBUG_STREAM() << "TemscriptMockObject(" << this << ")::AddRef -> " << r << "\n";
+        return r;
     }
 
     ULONG STDMETHODCALLTYPE Release() override
     {
         ULONG r = InterlockedDecrement(&refCount);
+        DEBUG_STREAM() << "TemscriptMockObject(" << this << ")::Release -> " << r << "\n";
         if (r == 0)
             delete this;
         return r;
@@ -151,13 +158,19 @@ public:
     // ISimpleCom
     HRESULT STDMETHODCALLTYPE get_Value(LONG* pVal) override
     {
-        if (!pVal) return E_POINTER;
+        if (!pVal) 
+            return E_POINTER;
+
+        DEBUG_STREAM() << "TemscriptMockObject(" << this << ")::get_Value -> " << value << "\n";
+
         *pVal = value;
         return S_OK;
     }
 
     HRESULT STDMETHODCALLTYPE put_Value(LONG val) override
     {
+        DEBUG_STREAM() << "TemscriptMockObject(" << this << ")::put_Value -> " << val << "\n";
+
         value = val;
         return S_OK;
     }
@@ -198,7 +211,7 @@ public:
         if (!ppv)
             return E_POINTER;
 
-        //std::cout << "MockObjectFactory::QueryInterface " << riid << "\n";
+        DEBUG_STREAM() << "MockObjectFactory::QueryInterface " << riid << "\n";
 
         if (IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IClassFactory))
         {
@@ -290,7 +303,7 @@ extern "C" HRESULT __stdcall DllCanUnloadNow(void)
 
 extern "C" HRESULT __stdcall DllGetClassObject(REFCLSID clsid, REFIID iid, void** ppv)
 {
-    //std::cout << "DllGetClassObject clsid=" << clsid << ", iid=" << iid << "\n";
+    DEBUG_STREAM() << "DllGetClassObject clsid=" << clsid << ", iid=" << iid << "\n";
 
     if (!IsEqualCLSID(clsid, CLSID_TemscriptMockObject))
         return CLASS_E_CLASSNOTAVAILABLE;
