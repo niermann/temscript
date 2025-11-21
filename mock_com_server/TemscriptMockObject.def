@@ -1,4 +1,4 @@
-LIBRARY "SimpleCom"
+LIBRARY "TemscriptMockObject"
 EXPORTS
     DllCanUnloadNow       PRIVATE
     DllGetClassObject     PRIVATE

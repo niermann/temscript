@@ -1,24 +1,58 @@
 #include <windows.h>
 #include <strsafe.h>
-#include "ISimpleCom.h"
-#include "SimpleComClassID.h"
+#include <olectl.h>
+#include <iostream>
+#include "ITemscriptMockObject.h"
 
 // ============================================================
-//  ChildComObject implementing ISimpleCom
+//  Debug helpers
 // ============================================================
-class ChildComObject : public ISimpleCom
+std::ostream& operator<<(std::ostream& os, const GUID& id) 
+{
+    char buffer[64];
+
+    char* tmp = buffer;
+    tmp += sprintf_s(buffer, 64, "%.8lX-%.4hX-%.4hX-", id.Data1, id.Data2, id.Data3);
+    for (unsigned i = 0; i < sizeof(id.Data4); ++i) {
+        tmp += sprintf_s(tmp, buffer + 64 - tmp, "%.2hhX", id.Data4[i]);
+        if (i == 1)
+            *tmp++ = '-';
+    }
+
+    os << buffer;
+    return os;
+}
+
+// ============================================================
+//  Global variables for server lifetime management
+// ============================================================
+LONG g_objCount = 0;
+LONG g_serverLocks = 0;
+
+// ============================================================
+//  ChildMockObject implementing ITemscriptMockObject
+// ============================================================
+class ChildMockObject : public ITemscriptMockObject
 {
 public:
-    ChildComObject() : refCount(1), value(999) {}
+    ~ChildMockObject()
+    {
+        InterlockedDecrement(&g_objCount);
+    }
+
+    ChildMockObject() : refCount(1), value(999) 
+    {
+        InterlockedIncrement(&g_objCount);
+    }
 
     // IUnknown
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override
     {
         if (!ppv) return E_POINTER;
 
-        if (riid == IID_IUnknown || riid == IID_ISimpleCom)
+        if (IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_ITemscriptMockObject))
         {
-            *ppv = static_cast<ISimpleCom*>(this);
+            *ppv = static_cast<ITemscriptMockObject*>(this);
             AddRef();
             return S_OK;
         }
@@ -54,7 +88,7 @@ public:
         return S_OK;
     }
 
-    HRESULT STDMETHODCALLTYPE GetChild(ISimpleCom** ppChild) override
+    HRESULT STDMETHODCALLTYPE GetChild(ITemscriptMockObject** ppChild) override
     {
         // Children do not have sub-children (simplest case)
         *ppChild = nullptr;
@@ -67,20 +101,22 @@ private:
 };
 
 // ============================================================
-//  SimpleComObject implementing ISimpleCom
+//  TemscriptMockObject implementing ISimpleCom
 // ============================================================
-class SimpleComObject : public ISimpleCom
+class TemscriptMockObject : public ITemscriptMockObject
 {
 public:
-    SimpleComObject() : refCount(1), value(0)
+    TemscriptMockObject() : refCount(1), value(0)
     {
-        child = new ChildComObject();
+        child = new ChildMockObject();
+        InterlockedIncrement(&g_objCount);
     }
 
-    ~SimpleComObject()
+    ~TemscriptMockObject()
     {
         if (child)
             child->Release();
+        InterlockedDecrement(&g_objCount);
     }
 
     // IUnknown
@@ -88,9 +124,9 @@ public:
     {
         if (!ppv) return E_POINTER;
 
-        if (riid == IID_IUnknown || riid == IID_ISimpleCom)
+        if (IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_ITemscriptMockObject))
         {
-            *ppv = static_cast<ISimpleCom*>(this);
+            *ppv = static_cast<ITemscriptMockObject*>(this);
             AddRef();
             return S_OK;
         }
@@ -126,7 +162,7 @@ public:
         return S_OK;
     }
 
-    HRESULT STDMETHODCALLTYPE GetChild(ISimpleCom** ppChild) override
+    HRESULT STDMETHODCALLTYPE GetChild(ITemscriptMockObject** ppChild) override
     {
         if (!ppChild) return E_POINTER;
         child->AddRef();      // Give the caller a reference
@@ -137,28 +173,40 @@ public:
 private:
     LONG refCount;
     LONG value;
-    ISimpleCom* child;
+    ITemscriptMockObject* child;
 };
 
 // ============================================================
 //  Class factory
 // ============================================================
-class SimpleComFactory : public IClassFactory
+class MockObjectFactory : public IClassFactory
 {
 public:
-    SimpleComFactory() : refCount(1) {}
+    ~MockObjectFactory()
+    {
+        InterlockedDecrement(&g_objCount);
+    }
+
+    MockObjectFactory() : refCount(1) 
+    {
+        InterlockedIncrement(&g_objCount);
+    }
 
     // IUnknown
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override
     {
-        if (!ppv) return E_POINTER;
+        if (!ppv)
+            return E_POINTER;
 
-        if (riid == IID_IUnknown || riid == IID_IClassFactory)
+        //std::cout << "MockObjectFactory::QueryInterface " << riid << "\n";
+
+        if (IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IClassFactory))
         {
             *ppv = static_cast<IClassFactory*>(this);
             AddRef();
             return S_OK;
         }
+
         *ppv = nullptr;
         return E_NOINTERFACE;
     }
@@ -179,54 +227,79 @@ public:
     // IClassFactory
     HRESULT STDMETHODCALLTYPE CreateInstance(IUnknown* outer, REFIID riid, void** ppv) override
     {
+        if (!ppv) 
+            return E_POINTER;    
+        *ppv = nullptr;
+
         if (outer != nullptr)
             return CLASS_E_NOAGGREGATION;
 
-        SimpleComObject* obj = new SimpleComObject();
-        return obj->QueryInterface(riid, ppv);
+        //std::cout << "MockObjectFactory::CreateInstance " << riid << "\n";
+
+        TemscriptMockObject* obj = new TemscriptMockObject();
+        *ppv = obj;
+        return S_OK;
+        HRESULT hr = obj->QueryInterface(riid, ppv);
+        obj->Release();
+
+        return hr;
     }
 
     HRESULT STDMETHODCALLTYPE LockServer(BOOL lock) override
     {
         if (lock)
-            InterlockedIncrement(&serverLocks);
+            InterlockedIncrement(&g_serverLocks);
         else
-            InterlockedDecrement(&serverLocks);
+            InterlockedDecrement(&g_serverLocks);
 
         return S_OK;
     }
 
 private:
     LONG refCount;
-    static inline LONG serverLocks = 0;
 };
-
-// Global DLL reference count
-static LONG g_dllRefCount = 0;
 
 // ============================================================
 //  Standard COM DLL functions
 // ============================================================
 
-BOOL APIENTRY DllMain(HMODULE, DWORD, LPVOID)
+static HINSTANCE g_hInstance;
+
+BOOL APIENTRY DllMain(HMODULE hinstDLL, DWORD reason, LPVOID)
 {
+    if (reason == DLL_PROCESS_ATTACH) {
+        g_hInstance = hinstDLL;
+        DisableThreadLibraryCalls(hinstDLL);
+    }
+
     return TRUE;
 }
 
 extern "C" HRESULT __stdcall DllCanUnloadNow(void)
 {
-    if (g_dllRefCount == 0)
-        return S_OK;
-    return S_FALSE;
+    // The DLL can be unloaded only if there are no outstanding objects and no server locks.
+    if (g_objCount == 0 && g_serverLocks == 0)
+    {
+        return S_OK; // OK to unload
+    }
+    else
+    {
+        return S_FALSE; // Not OK to unload
+    }
 }
 
 extern "C" HRESULT __stdcall DllGetClassObject(REFCLSID clsid, REFIID iid, void** ppv)
 {
-    if (clsid != CLSID_SimpleComObject)
+    //std::cout << "DllGetClassObject clsid=" << clsid << ", iid=" << iid << "\n";
+
+    if (!IsEqualCLSID(clsid, CLSID_TemscriptMockObject))
         return CLASS_E_CLASSNOTAVAILABLE;
 
-    SimpleComFactory* factory = new SimpleComFactory();
-    return factory->QueryInterface(iid, ppv);
+    MockObjectFactory* factory = new MockObjectFactory();
+    HRESULT hr = factory->QueryInterface(iid, ppv);
+    factory->Release();
+
+    return hr;
 }
 
 extern "C" HRESULT __stdcall DllRegisterServer(void)
@@ -235,11 +308,11 @@ extern "C" HRESULT __stdcall DllRegisterServer(void)
     WCHAR path[MAX_PATH];
 
     // Get DLL path
-    GetModuleFileNameW((HMODULE)&__ImageBase, path, MAX_PATH);
+    GetModuleFileNameW(g_hInstance, path, MAX_PATH);
 
     // CLSID key
     WCHAR clsidStr[64];
-    StringFromGUID2(CLSID_SimpleComObject, clsidStr, 64);
+    StringFromGUID2(CLSID_TemscriptMockObject, clsidStr, 64);
 
     WCHAR keyPath[128];
     wsprintfW(keyPath, L"CLSID\\%s\\InprocServer32", clsidStr);
@@ -261,7 +334,7 @@ extern "C" HRESULT __stdcall DllRegisterServer(void)
 extern "C" HRESULT __stdcall DllUnregisterServer(void)
 {
     WCHAR clsidStr[64];
-    StringFromGUID2(CLSID_SimpleComObject, clsidStr, 64);
+    StringFromGUID2(CLSID_TemscriptMockObject, clsidStr, 64);
 
     WCHAR keyPath[128];
     wsprintfW(keyPath, L"CLSID\\%s", clsidStr);
