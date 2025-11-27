@@ -2,6 +2,8 @@ from temscript._com import CLSCTX_ALL, IUnknown, co_create_instance
 from temscript._instrument_com import LongProperty, ObjectProperty
 from uuid import UUID
 
+# This test requires the TemscriptMockObject.dll to be registered
+# Use "regsvr32.exe TemscriptMockObject.dll" with admin privileges to register it, before running this script
 CLSID_MockObject = UUID('e5766dfa-303e-48a9-983e-352fa4a5a408')
 
 class IChildObject(IUnknown):
