@@ -14,7 +14,7 @@ with open("temscript/version.py") as fp:
 
 setup(name='temscript',
     version=__version__,
-    description='TEM Scripting adapter for FEI microscopes',
+    description='TEM Scripting adapter for TFS/FEI transmission electron microscopes',
     author='Tore Niermann',
     author_email='tore.niermann@tu-berlin.de',
     long_description=long_description,
