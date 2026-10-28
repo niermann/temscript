@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Unreleased
+^^^^^^^^^^
+
+* Changed get_microscope_id() to return the configured FEI D-number from the Windows registry when available,
+  instead of always returning the hostname. The hostname remains the fallback.
+
 Version 2.1.1
 ^^^^^^^^^^^^^
 

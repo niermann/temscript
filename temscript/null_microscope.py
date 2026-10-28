@@ -123,6 +123,7 @@ class NullMicroscope(BaseMicroscope):
         return "NULL"
 
     def get_microscope_id(self):
+        """Return the local hostname as the dummy microscope ID without reading the registry."""
         import socket
         return socket.gethostname()
 

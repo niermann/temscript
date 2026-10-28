@@ -87,9 +87,12 @@ class BaseMicroscope(ABC):
     @abstractmethod
     def get_microscope_id(self):
         """
-        Return microscope ID.
+        Return microscope ID as a string.
 
-        There is no way to read this via the scripting adapter directly, thus this method uses hostname instead.
+        :class:`Microscope` reads the configured FEI instrument key (D-number) from the Windows registry
+        and returns it as ``D-<number>``. If unavailable, it returns the local hostname.
+        :class:`RemoteMicroscope` returns the server's result over HTTP; :class:`NullMicroscope`
+        always returns the local hostname. See :ref:`restrictions` for details.
         """
         raise NotImplementedError
 
