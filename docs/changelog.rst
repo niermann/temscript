@@ -1,7 +1,7 @@
 Changelog
 =========
 
-Version 2.1.2
+Version 2.2.0
 ^^^^^^^^^^^^^
 
 * Added get_instrument_id(), which returns the microscope's serial number (D-number, without "D" prefix) from the

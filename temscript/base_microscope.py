@@ -88,7 +88,7 @@ class BaseMicroscope(ABC):
         """
         Return hostname of microscope's computer.
 
-        .. deprecated:: 2.1.2
+        .. deprecated:: 2.2.0
             The term "microscope ID" is ambiguous. FEI/TFS instruments identify themselves by the computer name
             and the instrument ID (as also stored in Velox metadata), use :meth:`get_computer_name` or
             :meth:`get_instrument_id` instead.
@@ -105,7 +105,7 @@ class BaseMicroscope(ABC):
 
         This corresponds to the computer name stored by FEI/TFS software, e.g. in Velox metadata.
 
-        .. versionadded:: 2.1.2
+        .. versionadded:: 2.2.0
         """
         import socket
         return socket.gethostname()
@@ -123,7 +123,7 @@ class BaseMicroscope(ABC):
 
         The default implementation returns an empty string.
 
-        .. versionadded:: 2.1.2
+        .. versionadded:: 2.2.0
         """
         return ""
 
@@ -1166,10 +1166,10 @@ class BaseMicroscope(ABC):
         .. versionchanged:: 2.0
             The method was renamed from get_optics_state() to get_state()
 
-        .. versionchanged:: 2.1.2
+        .. versionchanged:: 2.2.0
             Added "instrument_id" and "computer_name" entries.
 
-        .. deprecated:: 2.1.2
+        .. deprecated:: 2.2.0
             The "microscope_id" entry is deprecated and will be removed in future versions. It contains the
             same value as "computer_name", use that entry instead. See :meth:`get_microscope_id`.
         """
