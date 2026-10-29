@@ -4,8 +4,8 @@ Changelog
 Version 2.1.2
 ^^^^^^^^^^^^^
 
-* Added get_instrument_id(), which returns the configured FEI number from the Windows registry
-  (or an empty string if unavailable).
+* Added get_instrument_id(), which returns the microscope's serial number (D-number, without "D" prefix) from the
+  Windows registry (or an empty string if unavailable).
 * Added get_computer_name(), which returns the hostname of the microscope computer.
 * Deprecated get_microscope_id() as the term is ambiguous, use get_computer_name() or get_instrument_id() instead.
 * Added "instrument_id" and "computer_name" entries to the dictionary returned by get_state(). The "microscope_id"

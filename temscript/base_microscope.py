@@ -112,7 +112,8 @@ class BaseMicroscope(ABC):
 
     def get_instrument_id(self):
         """
-        Return serial number (D-number) of the microscope as string.
+        Return serial number of the microscope as string of decimal digits (without the "D" prefix,
+        e.g. "1234" for D1234).
 
         :class:`Microscope` reads the ``Instrument Key`` DWORD from
         ``HKEY_LOCAL_MACHINE\\SOFTWARE\\FEI\\Configuration`` in the Windows registry. If the serial number

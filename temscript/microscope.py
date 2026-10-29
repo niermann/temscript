@@ -23,7 +23,7 @@ def _get_instrument_id():
         with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\FEI\Configuration") as key:
             value, value_type = winreg.QueryValueEx(key, "Instrument Key")
         if value_type == winreg.REG_DWORD and value > 0:
-            return "D-{}".format(value)
+            return str(value)
     except OSError:
         pass  # Missing key/value or access denied.
     return ""
