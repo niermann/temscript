@@ -6,6 +6,7 @@ Unreleased
 
 * Added get_instrument_id(), which returns the configured FEI number from the Windows registry
   (or an empty string if unavailable).
+* Added get_computer_name(), which returns the hostname of the microscope computer.
 
 Version 2.1.1
 ^^^^^^^^^^^^^

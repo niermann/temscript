@@ -93,6 +93,15 @@ class BaseMicroscope(ABC):
         """
         raise NotImplementedError
 
+    def get_computer_name(self):
+        """
+        Return name (hostname) of the microscope computer.
+
+        .. versionadded:: 2.1.2
+        """
+        import socket
+        return socket.gethostname()
+
     def get_instrument_id(self):
         """
         Return serial number (D-number) of the microscope as string.
@@ -1150,6 +1159,7 @@ class BaseMicroscope(ABC):
             "family": self.get_family(),
             "microscope_id": self.get_microscope_id(),
             "instrument_id": self.get_instrument_id(),
+            "computer_name": self.get_computer_name(),
             "temscript_version": self.get_version(),
             "voltage(kV)": self.get_voltage(),
             "stage_holder": self.get_stage_holder(),

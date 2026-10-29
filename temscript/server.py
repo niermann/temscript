@@ -8,15 +8,15 @@ from .marshall import ExtendedJsonEncoder, gzip_encode, MIME_TYPE_PICKLE, MIME_T
 
 
 class MicroscopeHandler(BaseHTTPRequestHandler):
-    GET_V1_FORWARD = ("family", "microscope_id", "instrument_id", "version", "voltage", "vacuum", "stage_holder",
-                      "stage_status", "stage_position", "stage_limits", "detectors", "cameras", "stem_detectors",
-                      "stem_acquisition_param", "image_shift", "beam_shift", "beam_tilt", "projection_sub_mode",
-                      "projection_mode", "projection_mode_string", "magnification_index", "indicated_camera_length",
-                      "indicated_magnification", "defocus", "objective_excitation", "intensity", "objective_stigmator",
-                      "condenser_stigmator", "diffraction_shift", "screen_current", "screen_position",
-                      "illumination_mode", "condenser_mode", "illuminated_area", "probe_defocus", "convergence_angle",
-                      "stem_magnification", "stem_rotation", "spot_size_index", "dark_field_mode", "beam_blanked",
-                      "instrument_mode", 'optics_state', 'state', 'column_valves_open')
+    GET_V1_FORWARD = ("family", "microscope_id", "instrument_id", "computer_name", "version", "voltage", "vacuum",
+                      "stage_holder", "stage_status", "stage_position", "stage_limits", "detectors", "cameras",
+                      "stem_detectors", "stem_acquisition_param", "image_shift", "beam_shift", "beam_tilt",
+                      "projection_sub_mode", "projection_mode", "projection_mode_string", "magnification_index",
+                      "indicated_camera_length", "indicated_magnification", "defocus", "objective_excitation",
+                      "intensity", "objective_stigmator", "condenser_stigmator", "diffraction_shift", "screen_current",
+                      "screen_position", "illumination_mode", "condenser_mode", "illuminated_area", "probe_defocus",
+                      "convergence_angle", "stem_magnification", "stem_rotation", "spot_size_index", "dark_field_mode",
+                      "beam_blanked", "instrument_mode", 'optics_state', 'state', 'column_valves_open')
 
     PUT_V1_FORWARD = ("image_shift", "beam_shift", "beam_tilt", "projection_mode", "magnification_index",
                       "defocus", "intensity", "diffraction_shift", "objective_stigmator", "condenser_stigmator",
