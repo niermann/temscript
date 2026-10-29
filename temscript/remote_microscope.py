@@ -130,9 +130,6 @@ class RemoteMicroscope(BaseMicroscope):
     def get_family(self):
         return self._request("GET", "/v1/family")[1]
 
-    def get_microscope_id(self):
-        return self._request("GET", "/v1/microscope_id")[1]
-
     def get_computer_name(self):
         return self._request("GET", "/v1/computer_name")[1]
 

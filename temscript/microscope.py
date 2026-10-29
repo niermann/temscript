@@ -38,10 +38,6 @@ class Microscope(BaseMicroscope):
     def get_family(self):
         return ProductFamily(self._family).name
 
-    def get_microscope_id(self):
-        import socket
-        return socket.gethostname()
-
     def get_instrument_id(self):
         import winreg
         try:

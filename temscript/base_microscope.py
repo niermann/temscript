@@ -84,18 +84,26 @@ class BaseMicroscope(ABC):
         """Return product family (see :class:`ProductFamily` for values): "TITAN", "TECNAI", ..."""
         raise NotImplementedError
 
-    @abstractmethod
     def get_microscope_id(self):
         """
-        Return microscope ID.
+        Return hostname of microscope's computer.
 
-        There is no way to read this via the scripting adapter directly, thus this method uses hostname instead.
+        .. deprecated:: 2.1.2
+            The term "microscope ID" is ambiguous. FEI/TFS instruments identify themselves by the computer name
+            and the instrument ID (as also stored in Velox metadata), use :meth:`get_computer_name` or
+            :meth:`get_instrument_id` instead.
         """
-        raise NotImplementedError
+        import warnings
+        warnings.warn("Microscope.get_microscope_id() is deprecated. "
+                      "Use get_computer_name() and/or get_instrument_id() instead.",
+                      category=DeprecationWarning, stacklevel=2)
+        return self.get_computer_name()
 
     def get_computer_name(self):
         """
         Return name (hostname) of the microscope computer.
+
+        This corresponds to the computer name stored by FEI/TFS software, e.g. in Velox metadata.
 
         .. versionadded:: 2.1.2
         """
@@ -109,6 +117,8 @@ class BaseMicroscope(ABC):
         :class:`Microscope` reads the ``Instrument Key`` DWORD from
         ``HKEY_LOCAL_MACHINE\\SOFTWARE\\FEI\\Configuration`` in the Windows registry. If the serial number
         is not available, an empty string is returned. See :ref:`restrictions` for details.
+
+        This corresponds to the instrument ID stored by FEI/TFS software, e.g. in Velox metadata.
 
         The default implementation returns an empty string.
 
@@ -1154,10 +1164,17 @@ class BaseMicroscope(ABC):
 
         .. versionchanged:: 2.0
             The method was renamed from get_optics_state() to get_state()
+
+        .. versionchanged:: 2.1.2
+            Added "instrument_id" and "computer_name" entries.
+
+        .. deprecated:: 2.1.2
+            The "microscope_id" entry is deprecated and will be removed in future versions. It contains the
+            same value as "computer_name", use that entry instead. See :meth:`get_microscope_id`.
         """
         state = {
             "family": self.get_family(),
-            "microscope_id": self.get_microscope_id(),
+            "microscope_id": self.get_computer_name(),
             "instrument_id": self.get_instrument_id(),
             "computer_name": self.get_computer_name(),
             "temscript_version": self.get_version(),
@@ -1207,5 +1224,6 @@ class BaseMicroscope(ABC):
             use :meth:`get_state` instead.
         """
         import warnings
-        warnings.warn("Microscope.get_optics_state() is deprecated. Use get_state() instead.", DeprecationWarning)
+        warnings.warn("Microscope.get_optics_state() is deprecated. Use get_state() instead.",
+                      category=DeprecationWarning, stacklevel=2)
         return self.get_state()

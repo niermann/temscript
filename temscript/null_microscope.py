@@ -122,10 +122,6 @@ class NullMicroscope(BaseMicroscope):
     def get_family(self):
         return "NULL"
 
-    def get_microscope_id(self):
-        import socket
-        return socket.gethostname()
-
     def get_version(self):
         from .version import __version__
         return __version__
