@@ -1,3 +1,4 @@
+import functools
 import math
 
 from temscript.base_microscope import set_enum_attr_from_dict, set_attr_from_dict
@@ -5,6 +6,27 @@ from temscript.base_microscope import set_enum_attr_from_dict, set_attr_from_dic
 from .base_microscope import BaseMicroscope, parse_enum, STAGE_AXES
 from .instrument import CCDCamera, GetInstrument, STEMDetector
 from .enums import *
+
+
+# Computer name and instrument ID are properties of the machine, thus cached at module level
+# (and not per instance, which would keep instances alive).
+@functools.lru_cache(maxsize=None)
+def _get_computer_name():
+    import socket
+    return socket.gethostname()
+
+
+@functools.lru_cache(maxsize=None)
+def _get_instrument_id():
+    import winreg
+    try:
+        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\FEI\Configuration") as key:
+            value, value_type = winreg.QueryValueEx(key, "Instrument Key")
+        if value_type == winreg.REG_DWORD and value > 0:
+            return "D-{}".format(value)
+    except OSError:
+        pass  # Missing key/value or access denied.
+    return ""
 
 
 class Microscope(BaseMicroscope):
@@ -38,16 +60,11 @@ class Microscope(BaseMicroscope):
     def get_family(self):
         return ProductFamily(self._family).name
 
+    def get_computer_name(self):
+        return _get_computer_name()
+
     def get_instrument_id(self):
-        import winreg
-        try:
-            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\FEI\Configuration") as key:
-                value, value_type = winreg.QueryValueEx(key, "Instrument Key")
-            if value_type == winreg.REG_DWORD and value > 0:
-                return "D-{}".format(value)
-        except OSError:
-            pass  # Missing key/value or access denied.
-        return ""
+        return _get_instrument_id()
 
     def get_version(self):
         from .version import __version__
