@@ -1,8 +1,8 @@
 Changelog
 =========
 
-Unreleased
-^^^^^^^^^^
+Version 2.1.2
+^^^^^^^^^^^^^
 
 * Added get_instrument_id(), which returns the configured FEI number from the Windows registry
   (or an empty string if unavailable).
