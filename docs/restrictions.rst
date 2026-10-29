@@ -8,10 +8,10 @@ to this scripting interface, thus these issues also occur using `temscript`. As 
 with the scripting interfaces by FEI or Thermo Fisher Scientific themself, known issues are listed here for the user's
 reference.
 
-* The standard scripting interface does not expose the microscope's D-number. ``get_microscope_id()`` reads
+* The standard scripting interface does not expose the microscope's D-number. ``get_instrument_id()`` reads
   the ``Instrument Key`` DWORD from ``HKEY_LOCAL_MACHINE\SOFTWARE\FEI\Configuration``
   instead (verified on Titan 1.1), returning ``D-<number>``. If the value is missing, inaccessible,
-  not a DWORD, or zero, the hostname is returned.
+  not a DWORD, or zero, an empty string is returned.
 * Changing the projection mode from IMAGING to DIFFRACTION and back again changes the magnification in imaging
   mode (Titan 1.1).
 * :attr:`Projection.Magnification` does not return the actual magnification, but always 0.0 (Titan 1.1)

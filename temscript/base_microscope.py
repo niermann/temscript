@@ -87,14 +87,25 @@ class BaseMicroscope(ABC):
     @abstractmethod
     def get_microscope_id(self):
         """
-        Return microscope ID as a string.
+        Return microscope ID.
 
-        :class:`Microscope` reads the configured FEI instrument key (D-number) from the Windows registry
-        and returns it as ``D-<number>``. If unavailable, it returns the local hostname.
-        :class:`RemoteMicroscope` returns the server's result over HTTP; :class:`NullMicroscope`
-        always returns the local hostname. See :ref:`restrictions` for details.
+        There is no way to read this via the scripting adapter directly, thus this method uses hostname instead.
         """
         raise NotImplementedError
+
+    def get_instrument_id(self):
+        """
+        Return serial number (D-number) of the microscope as string.
+
+        :class:`Microscope` reads the ``Instrument Key`` DWORD from
+        ``HKEY_LOCAL_MACHINE\\SOFTWARE\\FEI\\Configuration`` in the Windows registry. If the serial number
+        is not available, an empty string is returned. See :ref:`restrictions` for details.
+
+        The default implementation returns an empty string.
+
+        .. versionadded:: 2.1.2
+        """
+        return ""
 
     @abstractmethod
     def get_version(self):
@@ -1138,6 +1149,7 @@ class BaseMicroscope(ABC):
         state = {
             "family": self.get_family(),
             "microscope_id": self.get_microscope_id(),
+            "instrument_id": self.get_instrument_id(),
             "temscript_version": self.get_version(),
             "voltage(kV)": self.get_voltage(),
             "stage_holder": self.get_stage_holder(),

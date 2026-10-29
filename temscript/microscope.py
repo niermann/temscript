@@ -39,26 +39,19 @@ class Microscope(BaseMicroscope):
         return ProductFamily(self._family).name
 
     def get_microscope_id(self):
-        r"""
-        Return the configured FEI instrument key as ``D-<number>``.
-
-        Reads the ``Instrument Key`` DWORD from ``HKEY_LOCAL_MACHINE\SOFTWARE\FEI\Configuration``.
-        Returns the local hostname if the value is missing, inaccessible, not a DWORD, or zero.
-        """
         import socket
+        return socket.gethostname()
+
+    def get_instrument_id(self):
         import winreg
-
-        registry_path = r"SOFTWARE\FEI\Configuration"
         try:
-            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, registry_path) as key:
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\FEI\Configuration") as key:
                 value, value_type = winreg.QueryValueEx(key, "Instrument Key")
-
             if value_type == winreg.REG_DWORD and value > 0:
                 return "D-{}".format(value)
         except OSError:
             pass  # Missing key/value or access denied.
-
-        return socket.gethostname()
+        return ""
 
     def get_version(self):
         from .version import __version__

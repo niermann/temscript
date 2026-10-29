@@ -31,6 +31,7 @@ else:
 
 print("Microscope.get_family():", microscope.get_family())
 print("Microscope.get_microscope_id():", microscope.get_microscope_id())
+print("Microscope.get_instrument_id():", microscope.get_instrument_id())
 print("Microscope.get_version():", microscope.get_version())
 print("Microscope.get_voltage():", microscope.get_voltage())
 print("Microscope.get_vacuum():", microscope.get_vacuum())

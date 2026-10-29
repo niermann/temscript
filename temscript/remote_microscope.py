@@ -131,13 +131,10 @@ class RemoteMicroscope(BaseMicroscope):
         return self._request("GET", "/v1/family")[1]
 
     def get_microscope_id(self):
-        """
-        Return the server's microscope ID via ``GET /v1/microscope_id``.
-
-        Returns the server's configured FEI D-number as ``D-<number>``, or its hostname if unavailable.
-        The client's registry is not read.
-        """
         return self._request("GET", "/v1/microscope_id")[1]
+
+    def get_instrument_id(self):
+        return self._request("GET", "/v1/instrument_id")[1]
 
     def get_version(self):
         return self._request("GET", "/v1/version")[1]

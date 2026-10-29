@@ -8,7 +8,7 @@ from .marshall import ExtendedJsonEncoder, gzip_encode, MIME_TYPE_PICKLE, MIME_T
 
 
 class MicroscopeHandler(BaseHTTPRequestHandler):
-    GET_V1_FORWARD = ("family", "microscope_id", "version", "voltage", "vacuum", "stage_holder",
+    GET_V1_FORWARD = ("family", "microscope_id", "instrument_id", "version", "voltage", "vacuum", "stage_holder",
                       "stage_status", "stage_position", "stage_limits", "detectors", "cameras", "stem_detectors",
                       "stem_acquisition_param", "image_shift", "beam_shift", "beam_tilt", "projection_sub_mode",
                       "projection_mode", "projection_mode_string", "magnification_index", "indicated_camera_length",
